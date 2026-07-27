@@ -24,22 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Arena runtime
+      - name: Validate game runtimes
         run: |
+          node --check arena-pro.js
           node --check arena-i18n.js
           node --check arena-v3.js
           node <<'NODE'
           const fs = require('fs');
           const chunks = [
-            'arena-v3-1.txt',
-            'arena-v3-2.txt',
-            'arena-v3-3.txt',
-            'arena-v3-4a.txt',
-            'arena-v3-4b.txt',
-            'arena-v3-5a.txt',
-            'arena-v3-5b.txt',
-            'arena-v3-6a.txt',
-            'arena-v3-6b.txt'
+            'arena-v3-1.txt','arena-v3-2.txt','arena-v3-3.txt','arena-v3-4a.txt','arena-v3-4b.txt',
+            'arena-v3-5a.txt','arena-v3-5b.txt','arena-v3-6a.txt','arena-v3-6b.txt'
           ];
           const encoded = chunks.map(file => fs.readFileSync(file, 'utf8').trim()).join('');
           fs.writeFileSync('/tmp/geoscope-arena-runtime.js', Buffer.from(encoded, 'base64').toString('utf8'));
@@ -53,10 +47,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const key = process.env.GOOGLE_MAPS_API_KEY || '';
-          fs.writeFileSync(
-            'config.js',
-            `window.GEOSCOPE_CONFIG = ${JSON.stringify({ googleMapsApiKey: key })};\n`
-          );
+          fs.writeFileSync('config.js', `window.GEOSCOPE_CONFIG = ${JSON.stringify({ googleMapsApiKey: key })};\n`);
           NODE
 
       - name: Configure Pages
