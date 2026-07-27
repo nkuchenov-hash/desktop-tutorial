@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://www.google.com">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css">
 <link rel="stylesheet" href="arena.css">
+<link rel="stylesheet" href="arena-v2.css">
 </head>
 <body>
 <section id="home" class="screen home active">
@@ -15,116 +16,145 @@
   <header class="topbar">
     <div class="brand"><span class="brand-mark"></span>GEO<b>SCOPE</b></div>
     <div class="account-strip">
-      <div class="account-chip"><span>LEAGUE</span><strong id="leagueTop">BRONZE III</strong></div>
-      <div class="account-chip"><span>COINS</span><strong>◈ <i id="coinsTop">0</i></strong></div>
+      <label class="language-control"><span data-i18n="language">Language</span><select id="languageSelect" aria-label="Language"></select></label>
+      <button id="profileBtn" class="account-chip account-button"><span data-i18n="profile">PROFILE</span><strong id="profileNameTop">PLAYER</strong></button>
+      <div class="account-chip"><span data-i18n="league">LEAGUE</span><strong id="leagueTop">BRONZE III</strong></div>
+      <div class="account-chip"><span data-i18n="coins">COINS</span><strong>◈ <i id="coinsTop">0</i></strong></div>
     </div>
   </header>
   <main class="home-layout">
     <section class="hero-panel">
-      <div class="eyebrow">GOOGLE STREET VIEW ARENA</div>
-      <h1>Read the world.<br><em>Place the pin.</em></h1>
-      <p>Real outdoor Street View, weighted location pools, competitive rounds and a scoring model that rewards both accuracy and speed.</p>
-
-      <div class="selector-heading"><strong>MATCH FORMAT</strong><span>Length and pace</span></div>
+      <div class="eyebrow" data-i18n="arenaLabel">GOOGLE STREET VIEW ARENA</div>
+      <h1 data-i18n-html="heroTitle">Read the world.<br><em>Place the pin.</em></h1>
+      <p data-i18n="heroText">Real outdoor Street View, weighted location pools, competitive rounds and scoring that rewards accuracy, country recognition and speed.</p>
+      <div class="selector-heading"><strong data-i18n="matchFormat">MATCH FORMAT</strong><span data-i18n="formatHint">Length and pace</span></div>
       <div id="formats" class="format-grid">
-        <button class="choice active" data-format="classic"><small>STANDARD</small><b>Classic</b><span>5 rounds · 90 sec</span></button>
-        <button class="choice" data-format="sprint"><small>FAST</small><b>Sprint</b><span>5 rounds · 35 sec</span></button>
-        <button class="choice" data-format="duel"><small>RANKED</small><b>League Duel</b><span>5 rounds · 60 sec</span></button>
-        <button class="choice" data-format="endurance"><small>LONG</small><b>Endurance</b><span>10 rounds · 120 sec</span></button>
+        <button class="choice active" data-format="classic"><small data-i18n="standard">STANDARD</small><b data-i18n="classic">Classic</b><span data-i18n="classicDesc">5 rounds · 90 sec</span></button>
+        <button class="choice" data-format="sprint"><small data-i18n="fast">FAST</small><b data-i18n="sprint">Sprint</b><span data-i18n="sprintDesc">5 rounds · 35 sec</span></button>
+        <button class="choice duel-choice" data-format="duel"><small data-i18n="headToHead">HEAD TO HEAD</small><b data-i18n="duel">Duel</b><span data-i18n="duelDesc">6,000 HP · knockout</span></button>
+        <button class="choice" data-format="endurance"><small data-i18n="long">LONG</small><b data-i18n="endurance">Endurance</b><span data-i18n="enduranceDesc">10 rounds · 120 sec</span></button>
       </div>
-
-      <div class="selector-heading"><strong>LOCATION SET</strong><span id="poolSummary">Balanced world mix with weighted probability</span></div>
+      <div class="selector-heading"><strong data-i18n="locationSet">LOCATION SET</strong><span id="poolSummary">Balanced world mix with weighted probability</span></div>
       <div id="pools" class="pool-grid">
-        <button class="pool active" data-pool="smart"><span class="pool-icon">◎</span><b>Smart Random</b><small>Mostly cities, occasionally scenic or remote</small></button>
-        <button class="pool" data-pool="cities"><span class="pool-icon">▦</span><b>Cities Only</b><small>Capitals, major and secondary cities</small></button>
-        <button class="pool" data-pool="capitals"><span class="pool-icon">◆</span><b>Capitals</b><small>National capitals and recognizable centres</small></button>
-        <button class="pool" data-pool="famous"><span class="pool-icon">★</span><b>Famous Places</b><small>Landmarks and globally known districts</small></button>
-        <button class="pool" data-pool="megacities"><span class="pool-icon">▥</span><b>Megacities</b><small>Dense metropolitan streets</small></button>
-        <button class="pool" data-pool="scenic"><span class="pool-icon">⌁</span><b>Scenic Roads</b><small>Coasts, mountains and countryside</small></button>
+        <button class="pool active" data-pool="smart"><span class="pool-icon">◎</span><b data-i18n="smartRandom">Smart Random</b><small data-i18n="smartDesc">Mostly cities, occasionally scenic or remote</small></button>
+        <button class="pool" data-pool="cities"><span class="pool-icon">▦</span><b data-i18n="citiesOnly">Cities Only</b><small data-i18n="citiesDesc">Capitals, major and secondary cities</small></button>
+        <button class="pool" data-pool="capitals"><span class="pool-icon">◆</span><b data-i18n="capitals">Capitals</b><small data-i18n="capitalsDesc">National capitals and recognizable centres</small></button>
+        <button class="pool" data-pool="famous"><span class="pool-icon">★</span><b data-i18n="famousPlaces">Famous Places</b><small data-i18n="famousDesc">Landmarks and globally known districts</small></button>
+        <button class="pool" data-pool="megacities"><span class="pool-icon">▥</span><b data-i18n="megacities">Megacities</b><small data-i18n="megacitiesDesc">Dense metropolitan streets</small></button>
+        <button class="pool" data-pool="scenic"><span class="pool-icon">⌁</span><b data-i18n="scenicRoads">Scenic Roads</b><small data-i18n="scenicDesc">Coasts, mountains and countryside</small></button>
       </div>
-
-      <div class="selector-heading"><strong>DIFFICULTY</strong><span id="difficultySummary">Clear clues and famous locations · 1× rewards</span></div>
+      <div class="selector-heading"><strong data-i18n="difficulty">DIFFICULTY</strong><span id="difficultySummary">Clear clues and famous locations · 1× rewards</span></div>
       <div id="difficulties" class="difficulty-row">
-        <button class="difficulty active" data-difficulty="1"><span>01</span><b>Easy</b><small>Clear clues</small></button>
-        <button class="difficulty" data-difficulty="2"><span>02</span><b>Medium</b><small>Less obvious</small></button>
-        <button class="difficulty" data-difficulty="3"><span>03</span><b>Hard</b><small>Subtle clues</small></button>
+        <button class="difficulty active" data-difficulty="1"><span>01</span><b data-i18n="easy">Easy</b><small data-i18n="easyDesc">Clear clues</small></button>
+        <button class="difficulty" data-difficulty="2"><span>02</span><b data-i18n="medium">Medium</b><small data-i18n="mediumDesc">Less obvious</small></button>
+        <button class="difficulty" data-difficulty="3"><span>03</span><b data-i18n="hard">Hard</b><small data-i18n="hardDesc">Subtle clues</small></button>
       </div>
-
-      <button id="startBtn" class="primary start-btn"><span>START MATCH</span><span>→</span></button>
-      <div id="ownerNotice" class="owner-notice" hidden>Google Street View is unavailable because the site key has not been configured.</div>
+      <button id="startBtn" class="primary start-btn"><span data-i18n="startMatch">START MATCH</span><span>→</span></button>
+      <div id="ownerNotice" class="owner-notice" hidden data-i18n="streetUnavailable">Google Street View is unavailable because the site key has not been configured.</div>
     </section>
-
     <aside class="home-sidebar">
       <section class="profile-card">
-        <div class="card-title"><span>YOUR LEAGUE</span><strong id="leagueName">Bronze III</strong></div>
+        <div class="card-title"><span data-i18n="yourLeague">YOUR LEAGUE</span><strong id="leagueName">Bronze III</strong></div>
         <div class="league-row"><div id="leagueBadge" class="league-badge">III</div><div><b id="xpText">0 / 1,000 XP</b><div class="xp-track"><span id="xpFill"></span></div><small id="winsText">0 match wins</small></div></div>
       </section>
       <section class="profile-card">
-        <div class="card-title"><span>PARTICIPANTS</span><strong>5 PLAYERS</strong></div>
+        <div class="card-title"><span data-i18n="participants">PARTICIPANTS</span><strong id="participantCount">5 PLAYERS</strong></div>
         <div id="homeRoster" class="roster"></div>
       </section>
       <section class="profile-card compact-card">
-        <div class="card-title"><span>SCORING</span><strong>5,000 / ROUND</strong></div>
-        <div class="score-model"><div><b>4,500</b><span>distance</span></div><div><b>500</b><span>speed</span></div><div><b id="rewardMultiplier">1×</b><span>reward</span></div></div>
+        <div class="card-title"><span data-i18n="scoring">SCORING</span><strong data-i18n="maxRound">5,000 / ROUND</strong></div>
+        <div class="score-model"><div><b>4,250</b><span data-i18n="distance">distance</span></div><div><b>300</b><span data-i18n="country">country</span></div><div><b>450</b><span data-i18n="speed">speed</span></div><div><b id="rewardMultiplier">1×</b><span data-i18n="reward">reward</span></div></div>
       </section>
     </aside>
   </main>
 </section>
-
 <section id="game" class="screen game">
   <iframe id="streetView" class="street-view" title="Google Street View" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
   <div class="street-shade"></div>
   <header class="game-hud">
+    <button id="quitBtn" class="hud-button danger-button" data-i18n-title="leaveMatch" title="Leave match">×</button>
     <div class="brand compact"><span class="brand-mark"></span>GEO<b>SCOPE</b></div>
     <div class="round-hud"><small id="gameModeLabel">CLASSIC · SMART RANDOM</small><strong id="roundLabel">ROUND 1 / 5</strong><div class="round-track"><span id="roundProgress"></span></div></div>
     <div id="timer" class="timer">01:30</div>
   </header>
+  <div id="duelHud" class="duel-hud" hidden>
+    <div class="duelist you"><div><small data-i18n="you">YOU</small><b id="duelYouName">Player</b></div><strong id="youHpText">6,000 HP</strong><div class="hp-track"><span id="youHpFill"></span></div></div>
+    <div class="duel-versus"><b>VS</b><span id="duelMultiplier">×1</span></div>
+    <div class="duelist opponent"><div><small data-i18n="opponent">OPPONENT</small><b id="duelOpponentName">Nova</b></div><strong id="opponentHpText">6,000 HP</strong><div class="hp-track"><span id="opponentHpFill"></span></div></div>
+  </div>
   <aside id="miniBoard" class="mini-board"></aside>
-  <div class="street-status"><span class="pulse"></span>OUTDOOR GOOGLE STREET VIEW · USE ROAD ARROWS TO MOVE</div>
-  <button id="mapTrigger" class="map-trigger"><div class="map-trigger-art"><span></span><i></i></div><div><small>READY TO GUESS?</small><b>OPEN MAP</b></div><strong>↗</strong></button>
-
+  <div class="street-status"><span class="pulse"></span><span data-i18n="streetStatus">OUTDOOR GOOGLE STREET VIEW · USE ROAD ARROWS TO MOVE</span></div>
+  <button id="mapTrigger" class="map-trigger"><div class="map-trigger-art"><span></span><i></i></div><div><small data-i18n="readyGuess">READY TO GUESS?</small><b data-i18n="openMap">OPEN MAP</b></div><strong>↗</strong></button>
   <aside id="guessPanel" class="guess-panel">
-    <div class="guess-head"><div><small>PLACE YOUR PIN</small><h2>Where are you?</h2></div><button id="closeMap" class="close-btn">×</button></div>
+    <div class="guess-head"><div><small data-i18n="placePin">PLACE YOUR PIN</small><h2 data-i18n="whereAreYou">Where are you?</h2></div><button id="closeMap" class="close-btn">×</button></div>
     <div id="guessMap" class="guess-map"></div>
-    <div class="guess-footer"><div><span id="coords">Click anywhere on the map</span><small id="guessTip">Zoom in for a more precise guess</small></div><button id="submitGuess" class="primary submit-btn" disabled>SUBMIT GUESS</button></div>
+    <div class="guess-footer"><div><span id="coords" data-i18n="clickMap">Click anywhere on the map</span><small id="guessTip" data-i18n="zoomTip">Zoom in for a more precise guess</small></div><button id="submitGuess" class="primary submit-btn" disabled data-i18n="submitGuess">SUBMIT GUESS</button></div>
   </aside>
-
   <div id="roundIntro" class="round-intro"><div><small id="introMode">SMART RANDOM</small><strong id="introRound">ROUND 1</strong><span id="introDifficulty">EASY</span></div></div>
 </section>
-
 <section id="result" class="screen result">
   <div id="resultMap" class="result-map"></div>
-  <div class="result-topbar"><div class="brand compact"><span class="brand-mark"></span>GEO<b>SCOPE</b></div><div id="resultRoundLabel">ROUND 1 COMPLETE</div></div>
+  <div class="result-topbar"><button id="resultQuitBtn" class="hud-button danger-button" data-i18n-title="leaveMatch" title="Leave match">×</button><div class="brand compact"><span class="brand-mark"></span>GEO<b>SCOPE</b></div><div id="resultRoundLabel">ROUND 1 COMPLETE</div></div>
   <aside class="result-panel">
-    <div class="eyebrow">ROUND RESULT</div>
+    <div class="eyebrow" data-i18n="roundResult">ROUND RESULT</div>
     <h1 id="resultTitle">Good read.</h1>
-    <div class="distance-block"><small>DISTANCE TO LOCATION</small><strong id="distanceValue">0 km</strong><span id="locationName">—</span></div>
+    <div class="distance-block"><small data-i18n="distanceToLocation">DISTANCE TO LOCATION</small><strong id="distanceValue">0 km</strong><span id="locationName">—</span></div>
     <div class="score-total"><strong id="roundScore">0</strong><span>/ 5,000</span></div>
-    <div class="score-breakdown">
-      <div><span>Distance</span><b id="distanceScore">0</b><small>/ 4,500</small></div>
-      <div><span>Speed</span><b id="speedScore">0</b><small>/ 500</small></div>
-      <div><span>Time used</span><b id="timeUsed">0s</b><small id="timeRemaining">0s left</small></div>
+    <div class="score-breakdown score-breakdown-v2">
+      <div><span data-i18n="distance">Distance</span><b id="distanceScore">0</b><small>/ 4,250</small></div>
+      <div><span data-i18n="country">Country</span><b id="countryScore">0</b><small id="countryMatch">—</small></div>
+      <div><span data-i18n="speed">Speed</span><b id="speedScore">0</b><small>/ 450</small></div>
+      <div><span data-i18n="timeUsed">Time used</span><b id="timeUsed">0s</b><small id="timeRemaining">0s left</small></div>
+    </div>
+    <div id="duelRoundResult" class="duel-round-result" hidden>
+      <div><span data-i18n="yourScore">Your score</span><b id="duelYourRoundScore">0</b></div>
+      <div><span id="duelOpponentLabel">Opponent</span><b id="duelOpponentRoundScore">0</b></div>
+      <div><span data-i18n="damage">Damage</span><b id="duelDamage">0</b><small id="duelDamageTarget">—</small></div>
     </div>
     <div id="roundStandings" class="standings"></div>
-    <button id="nextRound" class="primary next-btn">NEXT ROUND <span>→</span></button>
+    <button id="nextRound" class="primary next-btn"><span data-i18n="nextRound">NEXT ROUND</span> <span>→</span></button>
   </aside>
 </section>
-
 <section id="final" class="screen final">
   <div class="final-grid"></div>
   <main class="final-wrap">
-    <div class="eyebrow">MATCH COMPLETE</div>
+    <div class="eyebrow" data-i18n="matchComplete">MATCH COMPLETE</div>
     <div id="finishPlace" class="finish-place">1ST PLACE</div>
-    <h1>Match complete.<br><em>League updated.</em></h1>
+    <h1 id="finalTitle" data-i18n-html="finalTitle">Match complete.<br><em>League updated.</em></h1>
     <div id="totalScore" class="total-score">0</div>
-    <div class="reward-grid"><div><b id="xpReward">+0</b><span>XP</span></div><div><b id="coinReward">+0</b><span>COINS</span></div><div><b id="badgeReward">★</b><span>PRIZE</span></div></div>
+    <div class="reward-grid"><div><b id="xpReward">+0</b><span>XP</span></div><div><b id="coinReward">+0</b><span data-i18n="coins">COINS</span></div><div><b id="badgeReward">★</b><span data-i18n="prize">PRIZE</span></div></div>
     <div id="finalBoard" class="standings final-board"></div>
-    <div class="final-actions"><button id="againBtn" class="primary">PLAY AGAIN</button><button id="homeBtn" class="secondary">HOME</button></div>
+    <div class="final-actions"><button id="againBtn" class="primary" data-i18n="playAgain">PLAY AGAIN</button><button id="homeBtn" class="secondary" data-i18n="home">HOME</button></div>
   </main>
 </section>
-
+<section id="profile" class="screen profile-screen">
+  <header class="topbar profile-topbar"><button id="profileBackBtn" class="hud-button">←</button><div class="brand"><span class="brand-mark"></span>GEO<b>SCOPE</b></div><div class="eyebrow" data-i18n="playerCabinet">PLAYER CABINET</div></header>
+  <main class="cabinet-wrap">
+    <section class="cabinet-hero">
+      <div class="cabinet-avatar" id="cabinetAvatar">P</div>
+      <div><small data-i18n="playerProfile">PLAYER PROFILE</small><h1 id="cabinetName">Player</h1><p data-i18n="profileLocal">Statistics and preferences are saved in this browser.</p></div>
+    </section>
+    <section class="stats-grid">
+      <div><span data-i18n="matches">Matches</span><b id="statMatches">0</b></div><div><span data-i18n="wins">Wins</span><b id="statWins">0</b></div><div><span data-i18n="rounds">Rounds</span><b id="statRounds">0</b></div><div><span data-i18n="averageScore">Average score</span><b id="statAverage">0</b></div><div><span data-i18n="bestRound">Best round</span><b id="statBest">0</b></div><div><span data-i18n="averageDistance">Average distance</span><b id="statDistance">—</b></div><div><span data-i18n="duelRecord">Duel record</span><b id="statDuels">0–0</b></div><div><span data-i18n="abandoned">Abandoned</span><b id="statAbandoned">0</b></div>
+    </section>
+    <div class="cabinet-columns">
+      <section class="cabinet-card">
+        <div class="cabinet-card-head"><div><small data-i18n="preferences">PREFERENCES</small><h2 data-i18n="defaultModes">Default game and map modes</h2></div></div>
+        <label><span data-i18n="nickname">Nickname</span><input id="prefNickname" maxlength="18" value="Player"></label>
+        <label><span data-i18n="defaultFormat">Default format</span><select id="prefFormat"><option value="classic">Classic</option><option value="sprint">Sprint</option><option value="duel">Duel</option><option value="endurance">Endurance</option></select></label>
+        <label><span data-i18n="defaultPool">Default location set</span><select id="prefPool"><option value="smart">Smart Random</option><option value="cities">Cities Only</option><option value="capitals">Capitals</option><option value="famous">Famous Places</option><option value="megacities">Megacities</option><option value="scenic">Scenic Roads</option></select></label>
+        <label><span data-i18n="defaultDifficulty">Default difficulty</span><select id="prefDifficulty"><option value="1">Easy</option><option value="2">Medium</option><option value="3">Hard</option></select></label>
+        <label><span data-i18n="mapStyle">Guess-map style</span><select id="prefMapStyle"><option value="liberty">Liberty</option><option value="bright">Bright</option><option value="positron">Positron</option><option value="dark">Dark</option><option value="fiord">Fiord</option></select></label>
+        <label class="toggle-row"><input id="prefAnimations" type="checkbox" checked><span data-i18n="animations">Interface animations</span></label>
+        <button id="savePrefsBtn" class="primary" data-i18n="savePreferences">SAVE PREFERENCES</button><div id="prefsStatus" class="prefs-status"></div>
+      </section>
+      <section class="cabinet-card"><div class="cabinet-card-head"><div><small data-i18n="activity">ACTIVITY</small><h2 data-i18n="recentMatches">Recent matches</h2></div></div><div id="matchHistory" class="match-history"></div></section>
+    </div>
+  </main>
+</section>
 <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
 <script src="config.js"></script>
-<script src="arena.js"></script>
+<script src="arena-i18n.js"></script>
+<script src="arena-v3.js"></script>
 </body>
 </html>
