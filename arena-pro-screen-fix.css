@@ -1,0 +1,2 @@
+.screen.final{display:none}
+.screen.final.active{display:grid;place-items:center}
