@@ -1,4 +1,4 @@
-name: Deploy GeoScope to GitHub Pages
+name: Deploy GeoScope frontend
 
 on:
   push:
@@ -21,17 +21,37 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload static site
-        uses: actions/upload-pages-artifact@v4
+      - uses: actions/checkout@v4
+      - name: Build runtime configuration
+        env:
+          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+          GOOGLE_MAPS_BROWSER_KEY: ${{ vars.GOOGLE_MAPS_BROWSER_KEY }}
+        run: |
+          mkdir -p dist
+          cp index.html styles.css app.js dist/
+          touch dist/.nojekyll
+          cat > dist/runtime-config.js <<CONFIG
+          export const runtimeConfig = {
+            firebase: {
+              apiKey: "${FIREBASE_API_KEY}",
+              authDomain: "${FIREBASE_AUTH_DOMAIN}",
+              projectId: "${FIREBASE_PROJECT_ID}",
+              storageBucket: "${FIREBASE_STORAGE_BUCKET}",
+              messagingSenderId: "${FIREBASE_MESSAGING_SENDER_ID}",
+              appId: "${FIREBASE_APP_ID}"
+            },
+            googleMapsBrowserKey: "${GOOGLE_MAPS_BROWSER_KEY}",
+            functionsRegion: "europe-west1"
+          };
+          CONFIG
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
         with:
-          path: .
-
-      - name: Deploy
-        id: deployment
+          path: dist
+      - id: deployment
         uses: actions/deploy-pages@v4
