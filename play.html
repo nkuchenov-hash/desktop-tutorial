@@ -3,22 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>GeoScope — Google Street View League</title>
+<title>GeoScope — Google Street View Levels</title>
 <link rel="preconnect" href="https://www.google.com">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="google-game.css">
+<link rel="stylesheet" href="difficulty.css">
 </head>
 <body>
 <section id="home" class="screen home active">
 <div class="gridbg"></div>
 <header class="topbar"><div class="brand">GEO<b>SCOPE</b></div><div class="account"><div class="pill">LEAGUE <strong id="leagueTop">BRONZE III</strong></div><div class="pill">◈ <strong id="coinsTop">0</strong></div></div></header>
 <div class="homewrap">
-<main class="hero"><div class="eyebrow">GOOGLE STREET VIEW COMPETITION</div><h1>Explore.<br><em>Guess.</em> Climb.</h1><p>Real Google Street View rounds, a live five-player scoreboard, virtual prizes, leagues, and multiple game modes.</p>
+<main class="hero"><div class="eyebrow">GOOGLE STREET VIEW COMPETITION</div><h1>Explore.<br><em>Guess.</em> Climb.</h1><p>Walk through real outdoor Google Street View coverage, identify the city, compete through rounds, and progress from famous capitals to difficult urban locations.</p>
+<div class="selectorTitle"><strong>GAME MODE</strong><span>Choose match length and pace</span></div>
 <div class="modes" id="modes">
 <button class="mode active" data-mode="classic"><small>STANDARD</small><b>World Classic</b><span>5 rounds · 90 seconds</span></button>
 <button class="mode" data-mode="sprint"><small>FAST</small><b>World Sprint</b><span>5 rounds · 35 seconds</span></button>
 <button class="mode" data-mode="duel"><small>RANKED</small><b>League Duel</b><span>5 rounds · 60 seconds</span></button>
 <button class="mode" data-mode="endurance"><small>LONG</small><b>Endurance</b><span>10 rounds · 120 seconds</span></button>
+</div>
+<div class="selectorTitle levelTitle"><strong>DIFFICULTY LEVEL</strong><span id="levelSummary">Capitals and famous landmarks · 1× rewards</span></div>
+<div id="levels" class="levels">
+<button class="level active" data-level="easy"><small>LEVEL 1</small><b>Easy</b><span>Capitals and world-famous places</span><em>1× REWARD</em></button>
+<button class="level" data-level="medium"><small>LEVEL 2</small><b>Medium</b><span>Major cities with fewer obvious clues</span><em>1.2× REWARD</em></button>
+<button class="level" data-level="hard"><small>LEVEL 3</small><b>Hard</b><span>Secondary cities and subtle clues</span><em>1.5× REWARD</em></button>
 </div>
 <button id="startBtn" class="primary start"><span>START MATCH</span><span>→</span></button>
 <div id="ownerConfigNotice" class="error" hidden>Google Street View is temporarily unavailable because the site owner has not configured it.</div>
@@ -26,20 +34,17 @@
 <aside class="side">
 <section class="card"><div class="cardhead"><h2>Your league</h2><span>LOCAL PROFILE</span></div><div class="leaguehero"><div id="leagueBadge" class="badge">III</div><div><h3 id="leagueName">Bronze III</h3><p id="xpText">0 / 1,000 XP</p><div class="xpbar"><span id="xpFill"></span></div></div></div></section>
 <section class="card"><div class="cardhead"><h2>Match participants</h2><span>AI RIVALS</span></div><div id="homeRoster" class="roster"></div></section>
-<section class="card"><div class="cardhead"><h2>Match prizes</h2><span>VIRTUAL REWARDS</span></div><div class="rewardrow"><div class="reward"><b>+XP</b><span>LEAGUE PROGRESS</span></div><div class="reward"><b>◈</b><span>COINS</span></div><div class="reward"><b>★</b><span>WIN BADGE</span></div></div></section>
+<section class="card"><div class="cardhead"><h2>Match prizes</h2><span>DIFFICULTY MULTIPLIER</span></div><div class="rewardrow"><div class="reward"><b>+XP</b><span>LEAGUE PROGRESS</span></div><div class="reward"><b>◈</b><span>COINS</span></div><div class="reward"><b>★</b><span>WIN BADGE</span></div></div></section>
 </aside></div>
 </section>
-
 <section id="game" class="screen game">
 <iframe id="streetView" class="street" title="Google Street View" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="shade"></div>
-<div class="gamehud"><div class="brand">GEO<b>SCOPE</b></div><div id="roundLabel" class="roundlabel">ROUND 1 / 5</div><div id="timer" class="timer">01:30</div></div>
-<div id="miniBoard" class="miniBoard"></div><div class="streetnote">GOOGLE STREET VIEW · DRAG AND MOVE TO EXPLORE</div>
+<div class="gamehud"><div class="brand">GEO<b>SCOPE</b></div><div id="roundLabel" class="roundlabel">EASY · ROUND 1 / 5</div><div id="timer" class="timer">01:30</div></div>
+<div id="miniBoard" class="miniBoard"></div><div class="streetnote">OUTDOOR GOOGLE STREET VIEW · USE ROAD ARROWS TO MOVE</div>
 <button id="mapTrigger" class="maptrigger"><small>READY TO GUESS?</small><b>OPEN GUESS MAP →</b></button>
 <aside id="guessPanel" class="guesspanel"><div class="panelhead"><h2>Where are you?</h2><button id="closeMap" class="close">×</button></div><div id="guessMap" class="map"></div><div class="mapactions"><div id="coords" class="coords">Click anywhere on the map</div><button id="submitGuess" class="primary submit" disabled>SUBMIT GUESS</button></div></aside>
 </section>
-
 <section id="result" class="screen result"><div class="resultgrid"><div id="resultMap" class="resultmap"></div><div class="resultside"><div class="eyebrow">ROUND COMPLETE</div><h1 id="resultTitle">Good read.</h1><div id="roundScore" class="bigscore">0 <span>/ 5,000</span></div><div class="answer"><b id="answerPlace">—</b><span id="answerDistance">—</span></div><div id="roundStandings" class="standings"></div><button id="nextRound" class="primary">NEXT ROUND →</button></div></div></section>
-
 <section id="final" class="screen final"><div class="finalwrap"><div class="eyebrow">MATCH COMPLETE</div><div id="finishPlace" class="placefinish">1ST PLACE</div><h1>League match<br>complete.</h1><div id="totalScore" class="totalscore">0</div><div class="rewards"><div class="rewardbig"><b id="xpReward">+0</b><span>XP EARNED</span></div><div class="rewardbig"><b id="coinReward">+0</b><span>COINS EARNED</span></div><div class="rewardbig"><b id="badgeReward">★</b><span>MATCH PRIZE</span></div></div><div id="finalBoard" class="standings finalboard"></div><div class="finalactions"><button id="againBtn" class="primary">PLAY AGAIN</button><button id="homeBtn" class="secondary">HOME</button></div></div></section>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 <script src="config.js"></script>
