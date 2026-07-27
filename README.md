@@ -1,5 +1,7 @@
 # GeoScope
 
+**Play online:** https://nkuchenov-hash.github.io/desktop-tutorial/
+
 A modern, responsive geography guessing game inspired by the location-guessing genre.
 
 ## Features
