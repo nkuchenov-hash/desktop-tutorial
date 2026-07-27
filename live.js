@@ -1,43 +1,476 @@
-(()=>{
-'use strict';
-const seeds=[[40.758,-73.9855],[47.6097,-122.3331],[48.8566,2.3522],[52.52,13.405],[51.5074,-.1278],[41.9028,12.4964],[52.3676,4.9041],[59.3293,18.0686],[60.1699,24.9384],[35.6762,139.6503],[1.3521,103.8198],[-6.1939,106.8494],[-33.8688,151.2093],[-37.8136,144.9631],[-33.9249,18.4241],[19.4326,-99.1332],[-23.5505,-46.6333],[-34.6037,-58.3816],[25.2048,55.2708],[31.7683,35.2137]];
-const $=id=>document.getElementById(id),E={screens:[...document.querySelectorAll('.screen')],home:$('home-screen'),game:$('game-screen'),round:$('round-screen'),final:$('final-screen'),start:$('start-game'),open:$('open-map'),close:$('close-map'),panel:$('guess-panel'),submit:$('submit-guess'),hint:$('guess-hint'),view:$('street-view'),roundLabel:$('round-label'),resultRound:$('result-round-label'),progress:$('progress-fill'),timer:$('timer'),time:$('timer-value'),next:$('next-round'),distance:$('distance-value'),score:$('round-score'),ring:$('score-ring-value'),actual:$('actual-location'),provider:$('actual-country'),total:$('final-score'),breakdown:$('round-breakdown'),again:$('play-again'),share:$('share-score'),shareStatus:$('share-status'),settings:$('settings-dialog'),openSettings:$('open-settings-home'),apiKey:$('api-key'),prefer:$('prefer-streetview'),saveSettings:$('save-settings'),clearSettings:$('clear-settings'),zin:$('zoom-in-view'),zout:$('zoom-out-view'),reset:$('reset-view')};
-let S=fresh(),gmap,rmap,gmarker,tick,scale=1,nav,googlePromise,pano;
-function fresh(){return{round:0,rounds:[],guess:null,scores:[],seconds:90,submitted:false,photo:0}}
-function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function screen(x){E.screens.forEach(s=>s.classList.toggle('is-active',s===x));setTimeout(()=>{if(x===E.game&&gmap)gmap.invalidateSize();if(x===E.round&&rmap)rmap.invalidateSize()},60)}
-function label(t,b=false){E.start.querySelector('span').textContent=t;E.start.disabled=b}
-async function begin(){stop();S=fresh();label('LOADING REAL STREET IMAGERY…',true);try{S.rounds=await rounds(5);if(S.rounds.length<5)throw Error('coverage');label('START EXPLORING');screen(E.game);startRound()}catch(e){console.error(e);label('TRY AGAIN');alert('Live street imagery could not be loaded. Please try again in a moment.')}}
-async function rounds(n){let out=[];for(const [lat,lng] of shuffle([...seeds])){if(out.length===n)break;try{let r=await nearby(lat,lng);if(r)out.push(r)}catch(e){console.warn(e)}}return out}
-async function nearby(lat,lng){let q=new URLSearchParams({lat,lng,radius:3000,zoomLevel:15,join:'sequence',orderBy:'id',orderDirection:'desc'}),res=await fetch('https://api.openstreetcam.org/2.0/photo/?'+q);if(!res.ok)throw Error(res.status);let j=await res.json(),a=Array.isArray(j?.result?.data)?j.result.data:[],p=a.map(x=>{let u=x.fileurl||x.fileUrl||x.filepath||x.filePath,la=+x.lat,ln=+x.lng;if(!u||!isFinite(la)||!isFinite(ln))return null;if(!/^https?:/.test(u))u='https://api.openstreetcam.org'+(u[0]=='/'?'':'/')+u;return{id:+x.id||0,url:u,lat:la,lng:ln,heading:+x.heading||0,seq:String(x.sequence?.id||x.sequenceId||'')}}).filter(Boolean);if(!p.length)return null;let groups={};p.forEach(x=>(groups[x.seq]??=[]).push(x));let best=Object.values(groups).sort((a,b)=>b.length-a.length).slice(0,5),photos=best[Math.floor(Math.random()*best.length)]||p;photos.sort((a,b)=>a.id-b.id);let start=Math.floor(Math.random()*photos.length);return{photos,start}}
-function current(){return S.rounds[S.round].photos[S.photo]}
-function startRound(){S.guess=null;S.submitted=false;S.seconds=90;S.photo=S.rounds[S.round].start;scale=1;E.view.style.transform='scale(1)';E.roundLabel.textContent=`ROUND ${S.round+1} / ${S.rounds.length}`;E.progress.style.width=`${(S.round+1)/S.rounds.length*100}%`;E.submit.disabled=true;E.hint.textContent='Tap anywhere on the map';closeMap();resetGuess();showPhoto();timer();makeNav();updateNav()}
-function showPhoto(){let p=current(),cfg=settings();pano=null;E.view.innerHTML='';E.view.style.backgroundImage='none';if(cfg.useGoogle&&cfg.key)loadGoogle(cfg.key).then(()=>{let service=new google.maps.StreetViewService();service.getPanorama({location:{lat:p.lat,lng:p.lng},radius:250},(d,s)=>{if(s===google.maps.StreetViewStatus.OK){pano=new google.maps.StreetViewPanorama(E.view,{pano:d.location.pano,pov:{heading:p.heading,pitch:0},zoom:0,addressControl:false,fullscreenControl:false,showRoadLabels:false})}else karta(p)})}).catch(()=>karta(p));else karta(p)}
-function karta(p){E.view.style.backgroundImage=`url("${p.url.replaceAll('"','%22')}")`;E.view.setAttribute('aria-label','Live street-level imagery from KartaView')}
-function loadGoogle(key){if(window.google?.maps)return Promise.resolve();if(googlePromise)return googlePromise;googlePromise=new Promise((ok,no)=>{let cb='gm'+Date.now(),s=document.createElement('script');window[cb]=()=>{delete window[cb];ok()};s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=${cb}&v=weekly`;s.async=s.defer=true;s.onerror=no;document.head.appendChild(s)});return googlePromise}
-function makeNav(){if(nav)return;nav=document.createElement('div');nav.style.cssText='position:absolute;left:50%;bottom:28px;z-index:12;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 12px;background:rgba(8,10,12,.82);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(14px);font:700 10px/1 system-ui;letter-spacing:.12em';nav.innerHTML='<button data-d="-1" aria-label="Previous street image">←</button><span></span><button data-d="1" aria-label="Next street image">→</button>';nav.querySelectorAll('button').forEach(b=>{b.style.cssText='width:38px;height:38px;border:1px solid rgba(255,255,255,.18);background:#111;color:#c6ff3d;font-size:20px;cursor:pointer';b.onclick=()=>move(+b.dataset.d)});E.game.appendChild(nav)}
-function updateNav(){let a=S.rounds[S.round].photos;nav.hidden=a.length<2;nav.querySelector('span').textContent=`MOVE ALONG STREET · ${S.photo+1}/${a.length}`}
-function move(d){let a=S.rounds[S.round].photos,n=S.photo+d;if(n<0||n>=a.length)return;S.photo=n;scale=1;E.view.style.transform='scale(1)';showPhoto();updateNav()}
-function timer(){stop();updateTime();tick=setInterval(()=>{S.seconds--;updateTime();if(S.seconds<=0){stop();S.guess??={lat:0,lng:0};submit(true)}},1000)}
-function stop(){if(tick)clearInterval(tick);tick=null}
-function updateTime(){let m=Math.floor(S.seconds/60),s=S.seconds%60;E.time.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;E.timer.classList.toggle('is-low',S.seconds<=15)}
-function ensureMap(){if(gmap)return;gmap=L.map('guess-map',{worldCopyJump:true}).setView([20,0],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(gmap);gmap.on('click',e=>{S.guess={lat:e.latlng.lat,lng:e.latlng.lng};gmarker?.remove();gmarker=L.marker(e.latlng,{icon:pin('custom-pin')}).addTo(gmap);E.submit.disabled=false;E.hint.textContent=`${Math.abs(e.latlng.lat).toFixed(2)}° ${e.latlng.lat>=0?'N':'S'}, ${Math.abs(e.latlng.lng).toFixed(2)}° ${e.latlng.lng>=0?'E':'W'}`})}
-function resetGuess(){if(gmap){gmap.setView([20,0],2,{animate:false});gmarker?.remove();gmarker=null}}
-function pin(c){return L.divIcon({className:c,html:'<span class="pin-shape"></span>',iconSize:[26,32],iconAnchor:[13,30]})}
-function openMap(){ensureMap();E.panel.classList.add('is-open');E.panel.setAttribute('aria-hidden','false');setTimeout(()=>gmap.invalidateSize(),220)}
-function closeMap(){E.panel.classList.remove('is-open');E.panel.setAttribute('aria-hidden','true')}
-function submit(timeout=false){if(S.submitted||!S.guess)return;S.submitted=true;stop();let p=current(),d=dist(S.guess.lat,S.guess.lng,p.lat,p.lng),score=Math.max(0,Math.round(5000*Math.exp(-d/1900)));S.scores.push(score);result(p,d,score,timeout);screen(E.round)}
-function dist(a,b,c,d){let r=x=>x*Math.PI/180,R=6371,y=r(c-a),z=r(d-b),q=Math.sin(y/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(z/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
-function result(p,d,s,to){E.resultRound.textContent=`ROUND ${S.round+1} / ${S.rounds.length}`;E.distance.textContent=d<1?`${Math.round(d*1000)} m`:`${Math.round(d).toLocaleString()} km`;E.score.textContent=s.toLocaleString();E.actual.textContent=`${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`;E.provider.textContent='Live KartaView imagery'+(to?' · Time expired':'');E.next.querySelector('span').textContent=S.round===S.rounds.length-1?'SEE FINAL SCORE':'NEXT ROUND';E.ring.style.strokeDashoffset=String(421-s/5000*421);rmap?.remove();rmap=L.map('result-map',{zoomControl:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(rmap);let a=L.latLng(p.lat,p.lng),g=L.latLng(S.guess.lat,S.guess.lng);L.marker(a,{icon:pin('actual-pin')}).addTo(rmap);L.marker(g,{icon:pin('custom-pin')}).addTo(rmap);L.polyline([a,g],{color:'#c6ff3d',weight:3,dashArray:'8 10'}).addTo(rmap);rmap.fitBounds(L.latLngBounds(a,g).pad(.35),{maxZoom:7});setTimeout(()=>rmap.invalidateSize(),80)}
-function next(){if(S.round===S.rounds.length-1){final();screen(E.final)}else{S.round++;screen(E.game);startRound()}}
-function final(){let t=S.scores.reduce((a,b)=>a+b,0);E.total.textContent=t.toLocaleString();E.breakdown.innerHTML=S.scores.map((x,i)=>`<div class="round-score-chip"><span>ROUND ${i+1}</span><strong>${x.toLocaleString()}</strong></div>`).join('')}
-function share(){let t=S.scores.reduce((a,b)=>a+b,0),x=`GeoScope ${t.toLocaleString()}/25,000\n`+S.scores.map(s=>s>=4500?'🟩':s>=3000?'🟨':s>=1500?'🟧':'🟥').join('');navigator.clipboard?.writeText(x).then(()=>E.shareStatus.textContent='Result copied.').catch(()=>E.shareStatus.textContent=x)}
-function settings(){try{return{key:localStorage.getItem('geoscope.googleMapsKey')||'',useGoogle:localStorage.getItem('geoscope.preferStreetView')==='true'}}catch{return{key:'',useGoogle:false}}}
-function openSettings(){let s=settings();E.apiKey.value=s.key;E.prefer.checked=s.useGoogle;E.settings.showModal()}
-function saveSettings(){try{localStorage.setItem('geoscope.googleMapsKey',E.apiKey.value.trim());localStorage.setItem('geoscope.preferStreetView',String(E.prefer.checked))}catch{}E.settings.close()}
-function clearSettings(){E.apiKey.value='';E.prefer.checked=false;try{localStorage.clear()}catch{}}
-function home(e){e.preventDefault();stop();closeMap();screen(E.home)}
-function zoom(d){if(pano)pano.setZoom(Math.max(0,Math.min(5,(pano.getZoom()||0)+d)));else{scale=Math.max(1,Math.min(2,scale+.15*d));E.view.style.transform=`scale(${scale})`}}
-function reset(){if(pano){pano.setPov({heading:current().heading,pitch:0});pano.setZoom(0)}else{scale=1;E.view.style.transform='scale(1)'}}
-E.start.onclick=begin;E.again.onclick=begin;E.open.onclick=openMap;E.close.onclick=closeMap;E.submit.onclick=()=>submit();E.next.onclick=next;E.share.onclick=share;E.openSettings.onclick=openSettings;E.saveSettings.onclick=saveSettings;E.clearSettings.onclick=clearSettings;E.zin.onclick=()=>zoom(1);E.zout.onclick=()=>zoom(-1);E.reset.onclick=reset;document.querySelectorAll('a.brand').forEach(a=>a.onclick=home);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMap();if(E.game.classList.contains('is-active')&&e.key==='ArrowLeft')move(-1);if(E.game.classList.contains('is-active')&&e.key==='ArrowRight')move(1)});
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const E = {
+    screens: [...document.querySelectorAll('.screen')],
+    home: $('home-screen'),
+    game: $('game-screen'),
+    round: $('round-screen'),
+    final: $('final-screen'),
+    start: $('start-game'),
+    open: $('open-map'),
+    close: $('close-map'),
+    panel: $('guess-panel'),
+    submit: $('submit-guess'),
+    hint: $('guess-hint'),
+    view: $('street-view'),
+    roundLabel: $('round-label'),
+    resultRound: $('result-round-label'),
+    progress: $('progress-fill'),
+    timer: $('timer'),
+    time: $('timer-value'),
+    next: $('next-round'),
+    distance: $('distance-value'),
+    score: $('round-score'),
+    ring: $('score-ring-value'),
+    actual: $('actual-location'),
+    provider: $('actual-country'),
+    total: $('final-score'),
+    breakdown: $('round-breakdown'),
+    again: $('play-again'),
+    share: $('share-score'),
+    shareStatus: $('share-status'),
+    settings: $('settings-dialog'),
+    openSettings: $('open-settings-home'),
+    apiKey: $('api-key'),
+    prefer: $('prefer-streetview'),
+    saveSettings: $('save-settings'),
+    clearSettings: $('clear-settings'),
+    zin: $('zoom-in-view'),
+    zout: $('zoom-out-view'),
+    reset: $('reset-view')
+  };
+
+  let S = fresh();
+  let guessMap;
+  let resultMap;
+  let guessMarker;
+  let timerId;
+  let scale = 1;
+  let navigatorBar;
+  let googlePromise;
+  let panorama;
+
+  function fresh() {
+    return {
+      round: 0,
+      rounds: [],
+      guess: null,
+      scores: [],
+      seconds: 90,
+      submitted: false,
+      photo: 0
+    };
+  }
+
+  function shuffle(values) {
+    const result = [...values];
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [result[index], result[swap]] = [result[swap], result[index]];
+    }
+    return result;
+  }
+
+  function showScreen(target) {
+    E.screens.forEach(screen => screen.classList.toggle('is-active', screen === target));
+    setTimeout(() => {
+      if (target === E.game && guessMap) guessMap.invalidateSize();
+      if (target === E.round && resultMap) resultMap.invalidateSize();
+    }, 60);
+  }
+
+  function setStartLabel(text, disabled = false) {
+    E.start.querySelector('span').textContent = text;
+    E.start.disabled = disabled;
+  }
+
+  async function loadRounds(count) {
+    const response = await fetch(`generated/rounds.json?v=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Street dataset HTTP ${response.status}`);
+
+    const payload = await response.json();
+    const available = Array.isArray(payload?.rounds) ? payload.rounds : [];
+    const valid = available.filter(round =>
+      Array.isArray(round?.photos) &&
+      round.photos.length >= 3 &&
+      round.photos.every(photo => Number.isFinite(Number(photo.lat)) && Number.isFinite(Number(photo.lng)) && photo.url)
+    );
+
+    if (valid.length < count) throw new Error(`Only ${valid.length} valid street rounds are available`);
+
+    return shuffle(valid).slice(0, count).map(round => ({
+      ...round,
+      start: Math.max(0, Math.min(round.photos.length - 1, Number(round.start) || 0))
+    }));
+  }
+
+  async function begin() {
+    stopTimer();
+    S = fresh();
+    setStartLabel('LOADING REAL STREET IMAGERY…', true);
+
+    try {
+      S.rounds = await loadRounds(5);
+      setStartLabel('START EXPLORING');
+      showScreen(E.game);
+      startRound();
+    } catch (error) {
+      console.error(error);
+      setStartLabel('TRY AGAIN');
+      alert('The street imagery package is not available yet. Refresh the page after the current deployment finishes.');
+    }
+  }
+
+  function currentPhoto() {
+    return S.rounds[S.round].photos[S.photo];
+  }
+
+  function startRound() {
+    S.guess = null;
+    S.submitted = false;
+    S.seconds = 90;
+    S.photo = S.rounds[S.round].start;
+    scale = 1;
+
+    E.view.style.transform = 'scale(1)';
+    E.roundLabel.textContent = `ROUND ${S.round + 1} / ${S.rounds.length}`;
+    E.progress.style.width = `${((S.round + 1) / S.rounds.length) * 100}%`;
+    E.submit.disabled = true;
+    E.hint.textContent = 'Tap anywhere on the map';
+
+    closeMap();
+    resetGuess();
+    showPhoto();
+    startTimer();
+    makeNavigator();
+    updateNavigator();
+  }
+
+  function showPhoto() {
+    const photo = currentPhoto();
+    const config = settings();
+
+    panorama = null;
+    E.view.innerHTML = '';
+    E.view.style.backgroundImage = 'none';
+
+    if (config.useGoogle && config.key) {
+      loadGoogle(config.key)
+        .then(() => {
+          const service = new google.maps.StreetViewService();
+          service.getPanorama(
+            { location: { lat: photo.lat, lng: photo.lng }, radius: 250 },
+            (data, status) => {
+              if (status === google.maps.StreetViewStatus.OK) {
+                panorama = new google.maps.StreetViewPanorama(E.view, {
+                  pano: data.location.pano,
+                  pov: { heading: photo.heading, pitch: 0 },
+                  zoom: 0,
+                  addressControl: false,
+                  fullscreenControl: false,
+                  showRoadLabels: false
+                });
+              } else {
+                showKartaViewPhoto(photo);
+              }
+            }
+          );
+        })
+        .catch(() => showKartaViewPhoto(photo));
+    } else {
+      showKartaViewPhoto(photo);
+    }
+  }
+
+  function showKartaViewPhoto(photo) {
+    const safeUrl = String(photo.url).replaceAll('"', '%22');
+    E.view.style.backgroundImage = `url("${safeUrl}")`;
+    E.view.setAttribute('aria-label', 'Real street-level imagery from KartaView');
+  }
+
+  function loadGoogle(key) {
+    if (window.google?.maps) return Promise.resolve();
+    if (googlePromise) return googlePromise;
+
+    googlePromise = new Promise((resolve, reject) => {
+      const callback = `geoscopeMaps${Date.now()}`;
+      const script = document.createElement('script');
+      window[callback] = () => {
+        delete window[callback];
+        resolve();
+      };
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=${callback}&v=weekly`;
+      script.async = true;
+      script.defer = true;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+
+    return googlePromise;
+  }
+
+  function makeNavigator() {
+    if (navigatorBar) return;
+
+    navigatorBar = document.createElement('div');
+    navigatorBar.style.cssText = 'position:absolute;left:50%;bottom:28px;z-index:12;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 12px;background:rgba(8,10,12,.82);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(14px);font:700 10px/1 system-ui;letter-spacing:.12em';
+    navigatorBar.innerHTML = '<button data-direction="-1" aria-label="Previous street image">←</button><span></span><button data-direction="1" aria-label="Next street image">→</button>';
+
+    navigatorBar.querySelectorAll('button').forEach(button => {
+      button.style.cssText = 'width:38px;height:38px;border:1px solid rgba(255,255,255,.18);background:#111;color:#c6ff3d;font-size:20px;cursor:pointer';
+      button.addEventListener('click', () => move(Number(button.dataset.direction)));
+    });
+
+    E.game.appendChild(navigatorBar);
+  }
+
+  function updateNavigator() {
+    const photos = S.rounds[S.round].photos;
+    navigatorBar.hidden = photos.length < 2;
+    navigatorBar.querySelector('span').textContent = `MOVE ALONG STREET · ${S.photo + 1}/${photos.length}`;
+  }
+
+  function move(direction) {
+    const photos = S.rounds[S.round].photos;
+    const nextPhoto = S.photo + direction;
+    if (nextPhoto < 0 || nextPhoto >= photos.length) return;
+
+    S.photo = nextPhoto;
+    scale = 1;
+    E.view.style.transform = 'scale(1)';
+    showPhoto();
+    updateNavigator();
+  }
+
+  function startTimer() {
+    stopTimer();
+    updateTime();
+    timerId = setInterval(() => {
+      S.seconds -= 1;
+      updateTime();
+      if (S.seconds <= 0) {
+        stopTimer();
+        S.guess ??= { lat: 0, lng: 0 };
+        submitGuess(true);
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
+
+  function updateTime() {
+    const minutes = Math.floor(S.seconds / 60);
+    const seconds = S.seconds % 60;
+    E.time.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    E.timer.classList.toggle('is-low', S.seconds <= 15);
+  }
+
+  function ensureMap() {
+    if (guessMap) return;
+
+    guessMap = L.map('guess-map', { worldCopyJump: true }).setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(guessMap);
+
+    guessMap.on('click', event => {
+      S.guess = { lat: event.latlng.lat, lng: event.latlng.lng };
+      guessMarker?.remove();
+      guessMarker = L.marker(event.latlng, { icon: pin('custom-pin') }).addTo(guessMap);
+      E.submit.disabled = false;
+      E.hint.textContent = `${Math.abs(event.latlng.lat).toFixed(2)}° ${event.latlng.lat >= 0 ? 'N' : 'S'}, ${Math.abs(event.latlng.lng).toFixed(2)}° ${event.latlng.lng >= 0 ? 'E' : 'W'}`;
+    });
+  }
+
+  function resetGuess() {
+    if (!guessMap) return;
+    guessMap.setView([20, 0], 2, { animate: false });
+    guessMarker?.remove();
+    guessMarker = null;
+  }
+
+  function pin(className) {
+    return L.divIcon({
+      className,
+      html: '<span class="pin-shape"></span>',
+      iconSize: [26, 32],
+      iconAnchor: [13, 30]
+    });
+  }
+
+  function openMap() {
+    ensureMap();
+    E.panel.classList.add('is-open');
+    E.panel.setAttribute('aria-hidden', 'false');
+    setTimeout(() => guessMap.invalidateSize(), 220);
+  }
+
+  function closeMap() {
+    E.panel.classList.remove('is-open');
+    E.panel.setAttribute('aria-hidden', 'true');
+  }
+
+  function submitGuess(timeout = false) {
+    if (S.submitted || !S.guess) return;
+
+    S.submitted = true;
+    stopTimer();
+
+    const photo = currentPhoto();
+    const distance = calculateDistance(S.guess.lat, S.guess.lng, photo.lat, photo.lng);
+    const score = Math.max(0, Math.round(5000 * Math.exp(-distance / 1900)));
+    S.scores.push(score);
+
+    renderResult(photo, distance, score, timeout);
+    showScreen(E.round);
+  }
+
+  function calculateDistance(lat1, lng1, lat2, lng2) {
+    const radians = value => (value * Math.PI) / 180;
+    const radius = 6371;
+    const latitudeDelta = radians(lat2 - lat1);
+    const longitudeDelta = radians(lng2 - lng1);
+    const haversine = Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(longitudeDelta / 2) ** 2;
+    return radius * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+  }
+
+  function renderResult(photo, distance, score, timeout) {
+    const round = S.rounds[S.round];
+    E.resultRound.textContent = `ROUND ${S.round + 1} / ${S.rounds.length}`;
+    E.distance.textContent = distance < 1 ? `${Math.round(distance * 1000)} m` : `${Math.round(distance).toLocaleString()} km`;
+    E.score.textContent = score.toLocaleString();
+    E.actual.textContent = round.area || `${photo.lat.toFixed(4)}, ${photo.lng.toFixed(4)}`;
+    E.provider.textContent = `Real KartaView imagery${timeout ? ' · Time expired' : ''}`;
+    E.next.querySelector('span').textContent = S.round === S.rounds.length - 1 ? 'SEE FINAL SCORE' : 'NEXT ROUND';
+    E.ring.style.strokeDashoffset = String(421 - (score / 5000) * 421);
+
+    resultMap?.remove();
+    resultMap = L.map('result-map', { zoomControl: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(resultMap);
+
+    const actual = L.latLng(photo.lat, photo.lng);
+    const guessed = L.latLng(S.guess.lat, S.guess.lng);
+    L.marker(actual, { icon: pin('actual-pin') }).addTo(resultMap);
+    L.marker(guessed, { icon: pin('custom-pin') }).addTo(resultMap);
+    L.polyline([actual, guessed], { color: '#c6ff3d', weight: 3, dashArray: '8 10' }).addTo(resultMap);
+    resultMap.fitBounds(L.latLngBounds(actual, guessed).pad(0.35), { maxZoom: 7 });
+    setTimeout(() => resultMap.invalidateSize(), 80);
+  }
+
+  function nextRound() {
+    if (S.round === S.rounds.length - 1) {
+      renderFinal();
+      showScreen(E.final);
+    } else {
+      S.round += 1;
+      showScreen(E.game);
+      startRound();
+    }
+  }
+
+  function renderFinal() {
+    const total = S.scores.reduce((sum, score) => sum + score, 0);
+    E.total.textContent = total.toLocaleString();
+    E.breakdown.innerHTML = S.scores
+      .map((score, index) => `<div class="round-score-chip"><span>ROUND ${index + 1}</span><strong>${score.toLocaleString()}</strong></div>`)
+      .join('');
+  }
+
+  function shareResult() {
+    const total = S.scores.reduce((sum, score) => sum + score, 0);
+    const result = `GeoScope ${total.toLocaleString()}/25,000\n${S.scores.map(score => score >= 4500 ? '🟩' : score >= 3000 ? '🟨' : score >= 1500 ? '🟧' : '🟥').join('')}`;
+    navigator.clipboard?.writeText(result)
+      .then(() => { E.shareStatus.textContent = 'Result copied.'; })
+      .catch(() => { E.shareStatus.textContent = result; });
+  }
+
+  function settings() {
+    try {
+      return {
+        key: localStorage.getItem('geoscope.googleMapsKey') || '',
+        useGoogle: localStorage.getItem('geoscope.preferStreetView') === 'true'
+      };
+    } catch {
+      return { key: '', useGoogle: false };
+    }
+  }
+
+  function openSettings() {
+    const current = settings();
+    E.apiKey.value = current.key;
+    E.prefer.checked = current.useGoogle;
+    E.settings.showModal();
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem('geoscope.googleMapsKey', E.apiKey.value.trim());
+      localStorage.setItem('geoscope.preferStreetView', String(E.prefer.checked));
+    } catch {}
+    E.settings.close();
+  }
+
+  function clearSettings() {
+    E.apiKey.value = '';
+    E.prefer.checked = false;
+    try {
+      localStorage.removeItem('geoscope.googleMapsKey');
+      localStorage.removeItem('geoscope.preferStreetView');
+    } catch {}
+  }
+
+  function goHome(event) {
+    event.preventDefault();
+    stopTimer();
+    closeMap();
+    showScreen(E.home);
+  }
+
+  function zoom(direction) {
+    if (panorama) {
+      panorama.setZoom(Math.max(0, Math.min(5, (panorama.getZoom() || 0) + direction)));
+    } else {
+      scale = Math.max(1, Math.min(2, scale + 0.15 * direction));
+      E.view.style.transform = `scale(${scale})`;
+    }
+  }
+
+  function resetView() {
+    if (panorama) {
+      panorama.setPov({ heading: currentPhoto().heading, pitch: 0 });
+      panorama.setZoom(0);
+    } else {
+      scale = 1;
+      E.view.style.transform = 'scale(1)';
+    }
+  }
+
+  E.start.addEventListener('click', begin);
+  E.again.addEventListener('click', begin);
+  E.open.addEventListener('click', openMap);
+  E.close.addEventListener('click', closeMap);
+  E.submit.addEventListener('click', () => submitGuess());
+  E.next.addEventListener('click', nextRound);
+  E.share.addEventListener('click', shareResult);
+  E.openSettings.addEventListener('click', openSettings);
+  E.saveSettings.addEventListener('click', saveSettings);
+  E.clearSettings.addEventListener('click', clearSettings);
+  E.zin.addEventListener('click', () => zoom(1));
+  E.zout.addEventListener('click', () => zoom(-1));
+  E.reset.addEventListener('click', resetView);
+  document.querySelectorAll('a.brand').forEach(link => link.addEventListener('click', goHome));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMap();
+    if (E.game.classList.contains('is-active') && event.key === 'ArrowLeft') move(-1);
+    if (E.game.classList.contains('is-active') && event.key === 'ArrowRight') move(1);
+  });
 })();
