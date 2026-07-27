@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function roomMember(code) { return signedIn() && exists(/databases/$(database)/documents/rooms/$(code)/players/$(request.auth.uid)); }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isSelf(uid);
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName','photoURL','lastSeenAt']);
+      allow delete: if false;
+
+      match /friends/{friendUid} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
+      match /friendRequests/{requesterUid} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
+    }
+
+    match /rooms/{code} {
+      allow read: if roomMember(code);
+      allow write: if false;
+
+      match /players/{uid} {
+        allow read: if roomMember(code);
+        allow write: if false;
+      }
+      match /rounds/{roundId} {
+        allow read: if roomMember(code);
+        allow write: if false;
+        match /guesses/{uid} {
+          allow read: if roomMember(code);
+          allow write: if false;
+        }
+      }
+      match /private/{document=**} {
+        allow read, write: if false;
+      }
+    }
+  }
+}
