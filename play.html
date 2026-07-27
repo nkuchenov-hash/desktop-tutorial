@@ -11,7 +11,7 @@
 <body>
 <section id="home" class="screen home active">
 <div class="gridbg"></div>
-<header class="topbar"><div class="brand">GEO<b>SCOPE</b></div><div class="account"><div class="pill">LEAGUE <strong id="leagueTop">BRONZE III</strong></div><div class="pill">◈ <strong id="coinsTop">0</strong></div><button id="settingsBtn" class="iconbtn" title="Google Street View key">⚙</button></div></header>
+<header class="topbar"><div class="brand">GEO<b>SCOPE</b></div><div class="account"><div class="pill">LEAGUE <strong id="leagueTop">BRONZE III</strong></div><div class="pill">◈ <strong id="coinsTop">0</strong></div></div></header>
 <div class="homewrap">
 <main class="hero"><div class="eyebrow">GOOGLE STREET VIEW COMPETITION</div><h1>Explore.<br><em>Guess.</em> Climb.</h1><p>Real Google Street View rounds, a live five-player scoreboard, virtual prizes, leagues, and multiple game modes.</p>
 <div class="modes" id="modes">
@@ -21,6 +21,7 @@
 <button class="mode" data-mode="endurance"><small>LONG</small><b>Endurance</b><span>10 rounds · 120 seconds</span></button>
 </div>
 <button id="startBtn" class="primary start"><span>START MATCH</span><span>→</span></button>
+<div id="ownerConfigNotice" class="error" hidden>Google Street View is temporarily unavailable because the site owner has not configured it.</div>
 </main>
 <aside class="side">
 <section class="card"><div class="cardhead"><h2>Your league</h2><span>LOCAL PROFILE</span></div><div class="leaguehero"><div id="leagueBadge" class="badge">III</div><div><h3 id="leagueName">Bronze III</h3><p id="xpText">0 / 1,000 XP</p><div class="xpbar"><span id="xpFill"></span></div></div></div></section>
@@ -40,9 +41,8 @@
 <section id="result" class="screen result"><div class="resultgrid"><div id="resultMap" class="resultmap"></div><div class="resultside"><div class="eyebrow">ROUND COMPLETE</div><h1 id="resultTitle">Good read.</h1><div id="roundScore" class="bigscore">0 <span>/ 5,000</span></div><div class="answer"><b id="answerPlace">—</b><span id="answerDistance">—</span></div><div id="roundStandings" class="standings"></div><button id="nextRound" class="primary">NEXT ROUND →</button></div></div></section>
 
 <section id="final" class="screen final"><div class="finalwrap"><div class="eyebrow">MATCH COMPLETE</div><div id="finishPlace" class="placefinish">1ST PLACE</div><h1>League match<br>complete.</h1><div id="totalScore" class="totalscore">0</div><div class="rewards"><div class="rewardbig"><b id="xpReward">+0</b><span>XP EARNED</span></div><div class="rewardbig"><b id="coinReward">+0</b><span>COINS EARNED</span></div><div class="rewardbig"><b id="badgeReward">★</b><span>MATCH PRIZE</span></div></div><div id="finalBoard" class="standings finalboard"></div><div class="finalactions"><button id="againBtn" class="primary">PLAY AGAIN</button><button id="homeBtn" class="secondary">HOME</button></div></div></section>
-
-<div id="setup" class="setup"><div class="setupbox"><div class="eyebrow">REQUIRED FOR REAL GOOGLE IMAGERY</div><h2>Connect Google Street View</h2><p>The game is already integrated with Google Maps Embed Street View. Enter a browser API key with <b>Maps Embed API</b> enabled. Google requires a key, but Maps Embed usage itself is available at no charge.</p><label for="apiKey">Google Maps API key</label><input id="apiKey" type="password" autocomplete="off" placeholder="AIza…"><div class="setupactions"><button id="saveKey" class="primary">CONNECT STREET VIEW</button><button id="keyHelp" class="secondary">OPEN GOOGLE SETUP</button></div><div id="keyError" class="error"></div><div class="help">Restrict the key to <b>https://nkuchenov-hash.github.io/*</b> and to the <b>Maps Embed API</b>. The key is stored only in this browser.</div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="config.js"></script>
 <script src="google-game.js"></script>
 </body>
 </html>
