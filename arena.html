@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070a0d">
+<title>GeoScope — Street View Arena</title>
+<link rel="preconnect" href="https://www.google.com">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="arena.css">
+</head>
+<body>
+<section id="home" class="screen home active">
+  <div class="home-grid"></div>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark"></span>GEO<b>SCOPE</b></div>
+    <div class="account-strip">
+      <div class="account-chip"><span>LEAGUE</span><strong id="leagueTop">BRONZE III</strong></div>
+      <div class="account-chip"><span>COINS</span><strong>◈ <i id="coinsTop">0</i></strong></div>
+    </div>
+  </header>
+  <main class="home-layout">
+    <section class="hero-panel">
+      <div class="eyebrow">GOOGLE STREET VIEW ARENA</div>
+      <h1>Read the world.<br><em>Place the pin.</em></h1>
+      <p>Real outdoor Street View, weighted location pools, competitive rounds and a scoring model that rewards both accuracy and speed.</p>
+
+      <div class="selector-heading"><strong>MATCH FORMAT</strong><span>Length and pace</span></div>
+      <div id="formats" class="format-grid">
+        <button class="choice active" data-format="classic"><small>STANDARD</small><b>Classic</b><span>5 rounds · 90 sec</span></button>
+        <button class="choice" data-format="sprint"><small>FAST</small><b>Sprint</b><span>5 rounds · 35 sec</span></button>
+        <button class="choice" data-format="duel"><small>RANKED</small><b>League Duel</b><span>5 rounds · 60 sec</span></button>
+        <button class="choice" data-format="endurance"><small>LONG</small><b>Endurance</b><span>10 rounds · 120 sec</span></button>
+      </div>
+
+      <div class="selector-heading"><strong>LOCATION SET</strong><span id="poolSummary">Balanced world mix with weighted probability</span></div>
+      <div id="pools" class="pool-grid">
+        <button class="pool active" data-pool="smart"><span class="pool-icon">◎</span><b>Smart Random</b><small>Mostly cities, occasionally scenic or remote</small></button>
+        <button class="pool" data-pool="cities"><span class="pool-icon">▦</span><b>Cities Only</b><small>Capitals, major and secondary cities</small></button>
+        <button class="pool" data-pool="capitals"><span class="pool-icon">◆</span><b>Capitals</b><small>National capitals and recognizable centres</small></button>
+        <button class="pool" data-pool="famous"><span class="pool-icon">★</span><b>Famous Places</b><small>Landmarks and globally known districts</small></button>
+        <button class="pool" data-pool="megacities"><span class="pool-icon">▥</span><b>Megacities</b><small>Dense metropolitan streets</small></button>
+        <button class="pool" data-pool="scenic"><span class="pool-icon">⌁</span><b>Scenic Roads</b><small>Coasts, mountains and countryside</small></button>
+      </div>
+
+      <div class="selector-heading"><strong>DIFFICULTY</strong><span id="difficultySummary">Clear clues and famous locations · 1× rewards</span></div>
+      <div id="difficulties" class="difficulty-row">
+        <button class="difficulty active" data-difficulty="1"><span>01</span><b>Easy</b><small>Clear clues</small></button>
+        <button class="difficulty" data-difficulty="2"><span>02</span><b>Medium</b><small>Less obvious</small></button>
+        <button class="difficulty" data-difficulty="3"><span>03</span><b>Hard</b><small>Subtle clues</small></button>
+      </div>
+
+      <button id="startBtn" class="primary start-btn"><span>START MATCH</span><span>→</span></button>
+      <div id="ownerNotice" class="owner-notice" hidden>Google Street View is unavailable because the site key has not been configured.</div>
+    </section>
+
+    <aside class="home-sidebar">
+      <section class="profile-card">
+        <div class="card-title"><span>YOUR LEAGUE</span><strong id="leagueName">Bronze III</strong></div>
+        <div class="league-row"><div id="leagueBadge" class="league-badge">III</div><div><b id="xpText">0 / 1,000 XP</b><div class="xp-track"><span id="xpFill"></span></div><small id="winsText">0 match wins</small></div></div>
+      </section>
+      <section class="profile-card">
+        <div class="card-title"><span>PARTICIPANTS</span><strong>5 PLAYERS</strong></div>
+        <div id="homeRoster" class="roster"></div>
+      </section>
+      <section class="profile-card compact-card">
+        <div class="card-title"><span>SCORING</span><strong>5,000 / ROUND</strong></div>
+        <div class="score-model"><div><b>4,500</b><span>distance</span></div><div><b>500</b><span>speed</span></div><div><b id="rewardMultiplier">1×</b><span>reward</span></div></div>
+      </section>
+    </aside>
+  </main>
+</section>
+
+<section id="game" class="screen game">
+  <iframe id="streetView" class="street-view" title="Google Street View" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div class="street-shade"></div>
+  <header class="game-hud">
+    <div class="brand compact"><span class="brand-mark"></span>GEO<b>SCOPE</b></div>
+    <div class="round-hud"><small id="gameModeLabel">CLASSIC · SMART RANDOM</small><strong id="roundLabel">ROUND 1 / 5</strong><div class="round-track"><span id="roundProgress"></span></div></div>
+    <div id="timer" class="timer">01:30</div>
+  </header>
+  <aside id="miniBoard" class="mini-board"></aside>
+  <div class="street-status"><span class="pulse"></span>OUTDOOR GOOGLE STREET VIEW · USE ROAD ARROWS TO MOVE</div>
+  <button id="mapTrigger" class="map-trigger"><div class="map-trigger-art"><span></span><i></i></div><div><small>READY TO GUESS?</small><b>OPEN MAP</b></div><strong>↗</strong></button>
+
+  <aside id="guessPanel" class="guess-panel">
+    <div class="guess-head"><div><small>PLACE YOUR PIN</small><h2>Where are you?</h2></div><button id="closeMap" class="close-btn">×</button></div>
+    <div id="guessMap" class="guess-map"></div>
+    <div class="guess-footer"><div><span id="coords">Click anywhere on the map</span><small id="guessTip">Zoom in for a more precise guess</small></div><button id="submitGuess" class="primary submit-btn" disabled>SUBMIT GUESS</button></div>
+  </aside>
+
+  <div id="roundIntro" class="round-intro"><div><small id="introMode">SMART RANDOM</small><strong id="introRound">ROUND 1</strong><span id="introDifficulty">EASY</span></div></div>
+</section>
+
+<section id="result" class="screen result">
+  <div id="resultMap" class="result-map"></div>
+  <div class="result-topbar"><div class="brand compact"><span class="brand-mark"></span>GEO<b>SCOPE</b></div><div id="resultRoundLabel">ROUND 1 COMPLETE</div></div>
+  <aside class="result-panel">
+    <div class="eyebrow">ROUND RESULT</div>
+    <h1 id="resultTitle">Good read.</h1>
+    <div class="distance-block"><small>DISTANCE TO LOCATION</small><strong id="distanceValue">0 km</strong><span id="locationName">—</span></div>
+    <div class="score-total"><strong id="roundScore">0</strong><span>/ 5,000</span></div>
+    <div class="score-breakdown">
+      <div><span>Distance</span><b id="distanceScore">0</b><small>/ 4,500</small></div>
+      <div><span>Speed</span><b id="speedScore">0</b><small>/ 500</small></div>
+      <div><span>Time used</span><b id="timeUsed">0s</b><small id="timeRemaining">0s left</small></div>
+    </div>
+    <div id="roundStandings" class="standings"></div>
+    <button id="nextRound" class="primary next-btn">NEXT ROUND <span>→</span></button>
+  </aside>
+</section>
+
+<section id="final" class="screen final">
+  <div class="final-grid"></div>
+  <main class="final-wrap">
+    <div class="eyebrow">MATCH COMPLETE</div>
+    <div id="finishPlace" class="finish-place">1ST PLACE</div>
+    <h1>Match complete.<br><em>League updated.</em></h1>
+    <div id="totalScore" class="total-score">0</div>
+    <div class="reward-grid"><div><b id="xpReward">+0</b><span>XP</span></div><div><b id="coinReward">+0</b><span>COINS</span></div><div><b id="badgeReward">★</b><span>PRIZE</span></div></div>
+    <div id="finalBoard" class="standings final-board"></div>
+    <div class="final-actions"><button id="againBtn" class="primary">PLAY AGAIN</button><button id="homeBtn" class="secondary">HOME</button></div>
+  </main>
+</section>
+
+<script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
+<script src="config.js"></script>
+<script src="arena.js"></script>
+</body>
+</html>
