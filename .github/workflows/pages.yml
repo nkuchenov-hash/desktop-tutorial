@@ -37,6 +37,15 @@ jobs:
           ];
           const encoded = chunks.map(file => fs.readFileSync(file, 'utf8').trim()).join('');
           fs.writeFileSync('/tmp/geoscope-arena-runtime.js', Buffer.from(encoded, 'base64').toString('utf8'));
+
+          const html = fs.readFileSync('arena-pro.html', 'utf8');
+          const screenFix = fs.readFileSync('arena-pro-screen-fix.css', 'utf8').replace(/\s+/g, '');
+          if (!html.includes('arena-pro-screen-fix.css')) {
+            throw new Error('arena-pro.html is missing the screen visibility fix stylesheet');
+          }
+          if (!screenFix.includes('.screen.final{display:none}') || !screenFix.includes('.screen.final.active{display:grid')) {
+            throw new Error('Final screen visibility regression detected');
+          }
           NODE
           node --check /tmp/geoscope-arena-runtime.js
 
