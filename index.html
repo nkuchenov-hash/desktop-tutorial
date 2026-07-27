@@ -21,14 +21,14 @@
       </nav>
       <div class="home-grid" aria-hidden="true"></div><div class="orb orb-one" aria-hidden="true"></div><div class="orb orb-two" aria-hidden="true"></div>
       <main class="hero">
-        <div class="eyebrow"><span class="live-dot"></span> WORLD EXPLORATION GAME</div>
+        <div class="eyebrow"><span class="live-dot"></span> REAL STREET-IMAGERY GAME</div>
         <h1 id="home-title">The world is your<br /><em>playing field.</em></h1>
-        <p>Drop into a real street-level scene. Read the landscape. Pin your guess. Every kilometre matters.</p>
-        <div class="mode-card"><div><span class="mode-label">SELECT MODE</span><h2>World Tour</h2><p>5 rounds · 90 seconds each · live street imagery</p></div><div class="mode-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M6 24h36M24 6c5 5 8 11 8 18s-3 13-8 18c-5-5-8-11-8-18s3-13 8-18Z"/></svg></div></div>
+        <p>Explore real street-level imagery. Read the landscape. Pin your guess. Every kilometre matters.</p>
+        <div class="mode-card"><div><span class="mode-label">SELECT MODE</span><h2>World Tour</h2><p>5 rounds · 90 seconds each · real KartaView imagery</p></div><div class="mode-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M6 24h36M24 6c5 5 8 11 8 18s-3 13-8 18c-5-5-8-11-8-18s3-13 8-18Z"/></svg></div></div>
         <button id="start-game" class="primary-button start-button" type="button"><span>START EXPLORING</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
         <div class="home-stats" aria-label="Game statistics"><div><strong>5</strong><span>ROUNDS</span></div><div><strong>25K</strong><span>MAX SCORE</span></div><div><strong>∞</strong><span>REPLAYS</span></div></div>
       </main>
-      <footer class="home-footer"><span>Live imagery by KartaView.</span><span>Map data © OpenStreetMap contributors</span></footer>
+      <footer class="home-footer"><span>Street imagery refreshed automatically.</span><span>Map data © OpenStreetMap · Imagery © KartaView contributors</span></footer>
     </section>
 
     <section id="game-screen" class="screen game-screen" aria-label="Game round">
@@ -49,7 +49,7 @@
       <main class="final-content"><span class="eyebrow"><span class="live-dot"></span> EXPEDITION COMPLETE</span><h1 id="final-title">You mapped<br /><em>the unknown.</em></h1><div class="total-score-card"><span>FINAL SCORE</span><strong id="final-score">0</strong><small>OUT OF 25,000</small></div><div id="round-breakdown" class="round-breakdown" aria-label="Round score breakdown"></div><div class="final-actions"><button id="play-again" class="primary-button" type="button">PLAY AGAIN</button><button id="share-score" class="secondary-button" type="button">COPY RESULT</button></div><p id="share-status" class="share-status" aria-live="polite"></p></main>
     </section>
 
-    <dialog id="settings-dialog" class="settings-dialog"><form method="dialog"><div class="settings-head"><div><span class="panel-kicker">GAME SETTINGS</span><h2>Street View provider</h2></div><button class="icon-button panel-close" value="cancel" aria-label="Close settings">×</button></div><p>GeoScope works immediately with live KartaView street-level imagery. Add a Google Maps JavaScript API key only if you want Google Street View panoramas where available.</p><label for="api-key">Google Maps API key</label><input id="api-key" name="api-key" type="password" autocomplete="off" placeholder="Optional Google Maps key" /><label class="check-row" for="prefer-streetview"><input id="prefer-streetview" type="checkbox" /><span>Prefer Google Street View</span></label><div class="settings-actions"><button id="clear-settings" class="secondary-button" type="button">CLEAR</button><button id="save-settings" class="primary-button" type="button">SAVE SETTINGS</button></div><small class="settings-note">Google requires a billing-enabled key. Restrict it to this GitHub Pages domain.</small></form></dialog>
+    <dialog id="settings-dialog" class="settings-dialog"><form method="dialog"><div class="settings-head"><div><span class="panel-kicker">GAME SETTINGS</span><h2>Street View provider</h2></div><button class="icon-button panel-close" value="cancel" aria-label="Close settings">×</button></div><p>GeoScope includes real KartaView street imagery downloaded during deployment, so it works without an API key. Add a Google Maps JavaScript API key only to prefer interactive Google Street View panoramas where available.</p><label for="api-key">Google Maps API key</label><input id="api-key" name="api-key" type="password" autocomplete="off" placeholder="Optional Google Maps key" /><label class="check-row" for="prefer-streetview"><input id="prefer-streetview" type="checkbox" /><span>Prefer Google Street View</span></label><div class="settings-actions"><button id="clear-settings" class="secondary-button" type="button">CLEAR</button><button id="save-settings" class="primary-button" type="button">SAVE SETTINGS</button></div><small class="settings-note">Google requires a billing-enabled key. Restrict it to this GitHub Pages domain.</small></form></dialog>
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="live.js"></script>
