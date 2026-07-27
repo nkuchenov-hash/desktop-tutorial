@@ -3,55 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0d10" />
-  <meta name="description" content="GeoScope — a modern location guessing game." />
-  <title>GeoScope — Explore. Guess. Score.</title>
+  <meta name="theme-color" content="#080b10" />
+  <meta name="description" content="GeoScope — competitive multiplayer geography powered by Google Street View." />
+  <title>GeoScope — Multiplayer Street View Challenge</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3L3cHNEscmCc8ga5xRPSCQc+gVs04=" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app">
-    <section id="home-screen" class="screen home-screen is-active" aria-labelledby="home-title">
-      <nav class="topbar home-topbar">
-        <a class="brand" href="#" aria-label="GeoScope home"><span class="brand-mark" aria-hidden="true"><span></span><span></span></span><span>GEOSCOPE</span></a>
-        <button id="open-settings-home" class="icon-button" type="button" aria-label="Open settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.37a1.7 1.7 0 0 0-1 .63 1.7 1.7 0 0 0-.38 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.5 19.3a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.13 15a1.7 1.7 0 0 0-.63-1 1.7 1.7 0 0 0-1.1-.38H2.3v-4h.09A1.7 1.7 0 0 0 4 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.4 4.13a1.7 1.7 0 0 0 1-.63 1.7 1.7 0 0 0 .38-1.1V2.3h4v.09A1.7 1.7 0 0 0 15 4a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.37 8c.16.37.38.7.63 1 .29.34.68.55 1.1.58h.1v4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg></button>
-      </nav>
-      <div class="home-grid" aria-hidden="true"></div><div class="orb orb-one" aria-hidden="true"></div><div class="orb orb-two" aria-hidden="true"></div>
-      <main class="hero">
-        <div class="eyebrow"><span class="live-dot"></span> WORLD EXPLORATION GAME</div>
-        <h1 id="home-title">The world is your<br /><em>playing field.</em></h1>
-        <p>Drop into a place. Read the landscape. Pin your guess. Every kilometre matters.</p>
-        <div class="mode-card"><div><span class="mode-label">SELECT MODE</span><h2>World Tour</h2><p>5 rounds · 90 seconds each · global locations</p></div><div class="mode-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M6 24h36M24 6c5 5 8 11 8 18s-3 13-8 18c-5-5-8-11-8-18s3-13 8-18Z"/></svg></div></div>
-        <button id="start-game" class="primary-button start-button" type="button"><span>START EXPLORING</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-        <div class="home-stats" aria-label="Game statistics"><div><strong>5</strong><span>ROUNDS</span></div><div><strong>25K</strong><span>MAX SCORE</span></div><div><strong>∞</strong><span>REPLAYS</span></div></div>
-      </main>
-      <footer class="home-footer"><span>Built for curious minds.</span><span>Map data © OpenStreetMap contributors</span></footer>
-    </section>
+  <div id="app" class="app-shell">
+    <header class="app-header">
+      <button class="brand" data-action="home" type="button" aria-label="GeoScope home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+        <span>GEOSCOPE</span>
+      </button>
+      <div class="header-actions">
+        <span id="connection-pill" class="status-pill">CONNECTING</span>
+        <button id="friends-button" class="header-button is-hidden" type="button">FRIENDS</button>
+        <button id="profile-button" class="avatar-button is-hidden" type="button" aria-label="Open profile"><span id="avatar-fallback">G</span><img id="avatar-image" alt="" /></button>
+      </div>
+    </header>
 
-    <section id="game-screen" class="screen game-screen" aria-label="Game round">
-      <div id="street-view" class="street-view" role="img" aria-label="Location view"></div><div class="image-shade" aria-hidden="true"></div>
-      <header class="game-header"><a class="brand compact-brand" href="#" aria-label="Quit to GeoScope home"><span class="brand-mark" aria-hidden="true"><span></span><span></span></span><span>GEOSCOPE</span></a><div class="round-progress" aria-label="Round progress"><span id="round-label">ROUND 1 / 5</span><div class="progress-track"><div id="progress-fill"></div></div></div><div class="timer" id="timer" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg><span id="timer-value">01:30</span></div></header>
-      <aside class="view-tools" aria-label="View controls"><button id="zoom-in-view" class="glass-button" type="button" aria-label="Zoom in">+</button><button id="zoom-out-view" class="glass-button" type="button" aria-label="Zoom out">−</button><button id="reset-view" class="glass-button" type="button" aria-label="Reset view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"/></svg></button></aside>
-      <button id="open-map" class="map-trigger" type="button"><span class="map-trigger-art" aria-hidden="true"><svg viewBox="0 0 80 58"><path d="m4 12 22-8 28 8 22-8v42l-22 8-28-8-22 8V12Z"/><path d="M26 4v42m28-34v42"/></svg><span class="pin-mini"></span></span><span><small>READY TO GUESS?</small><strong>OPEN MAP</strong></span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-      <div id="guess-panel" class="guess-panel" aria-hidden="true"><div class="guess-panel-head"><div><span class="panel-kicker">PLACE YOUR PIN</span><h2>Where are you?</h2></div><button id="close-map" class="icon-button panel-close" type="button" aria-label="Close map">×</button></div><div id="guess-map" class="guess-map" aria-label="World map for placing a guess"></div><div class="guess-actions"><span id="guess-hint">Tap anywhere on the map</span><button id="submit-guess" class="primary-button" type="button" disabled>SUBMIT GUESS</button></div></div>
-    </section>
+    <main>
+      <section id="auth-screen" class="screen auth-screen is-active">
+        <div class="auth-art" aria-hidden="true">
+          <div class="globe-ring ring-one"></div><div class="globe-ring ring-two"></div><div class="globe-ring ring-three"></div>
+          <div class="orbit-dot dot-one"></div><div class="orbit-dot dot-two"></div><div class="orbit-dot dot-three"></div>
+        </div>
+        <div class="auth-content">
+          <span class="kicker"><i></i> LIVE MULTIPLAYER GEOGRAPHY</span>
+          <h1>Read the world.<br /><em>Beat your friends.</em></h1>
+          <p>Drop into real Google Street View locations, place your pin, and compete in synchronized rounds.</p>
+          <button id="google-sign-in" class="google-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.81-1.76-5.6-4.12H3.05v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.92A6 6 0 0 1 6.08 12c0-.67.12-1.32.32-1.92V7.49H3.05A10 10 0 0 0 2 12c0 1.61.38 3.14 1.05 4.51l3.35-2.59Z"/><path fill="#EA4335" d="M12 5.96c1.47 0 2.79.5 3.83 1.5l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.95 5.49l3.35 2.59c.79-2.36 3-4.12 5.6-4.12Z"/></svg>
+            CONTINUE WITH GOOGLE
+          </button>
+          <p class="auth-note">Google login is used for profiles, rooms, friends, ratings and match history.</p>
+        </div>
+      </section>
 
-    <section id="round-screen" class="screen result-screen" aria-labelledby="round-result-title">
-      <header class="simple-header"><a class="brand compact-brand" href="#" aria-label="GeoScope home"><span class="brand-mark" aria-hidden="true"><span></span><span></span></span><span>GEOSCOPE</span></a><span id="result-round-label">ROUND 1 / 5</span></header>
-      <main class="round-result-layout"><div class="result-map-wrap"><div id="result-map" class="result-map" aria-label="Map showing actual location and guess"></div><div class="distance-badge"><span>DISTANCE</span><strong id="distance-value">0 km</strong></div></div><div class="result-info"><span class="panel-kicker">ROUND COMPLETE</span><h1 id="round-result-title">Not bad.<br /><em>You were close.</em></h1><div class="score-ring" aria-label="Round score"><svg viewBox="0 0 160 160" aria-hidden="true"><circle class="score-ring-bg" cx="80" cy="80" r="67"/><circle id="score-ring-value" class="score-ring-value" cx="80" cy="80" r="67"/></svg><div><strong id="round-score">0</strong><span>/ 5,000</span></div></div><div class="location-answer"><span>ACTUAL LOCATION</span><strong id="actual-location">—</strong><small id="actual-country">—</small></div><button id="next-round" class="primary-button" type="button"><span>NEXT ROUND</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div></main>
-    </section>
+      <section id="dashboard-screen" class="screen dashboard-screen">
+        <div class="dashboard-hero">
+          <div>
+            <span class="kicker"><i></i> WORLD ARENA</span>
+            <h1>Where do you<br /><em>want to compete?</em></h1>
+          </div>
+          <div class="rating-card"><span>YOUR RATING</span><strong id="rating-value">1000</strong><small id="rating-rank">UNRANKED</small></div>
+        </div>
+        <div class="dashboard-grid">
+          <article class="mode-panel primary-mode">
+            <div class="panel-number">01</div>
+            <div><span class="panel-label">PRIVATE MULTIPLAYER</span><h2>Create a room</h2><p>Invite friends with a code or link. Control the round count and timer.</p></div>
+            <button id="create-room" class="primary-button" type="button">CREATE ROOM <span>→</span></button>
+          </article>
+          <article class="mode-panel">
+            <div class="panel-number">02</div>
+            <div><span class="panel-label">JOIN FRIENDS</span><h2>Enter a room code</h2><p>Join a live lobby and compete in the same Street View rounds.</p></div>
+            <div class="join-row"><input id="room-code-input" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code" /><button id="join-room" class="secondary-button" type="button">JOIN</button></div>
+          </article>
+          <article class="mode-panel compact-mode">
+            <div><span class="panel-label">QUICK MATCH</span><h2>Solo training</h2><p>Start a private one-player room to test Street View and scoring.</p></div>
+            <button id="solo-game" class="secondary-button" type="button">PLAY SOLO</button>
+          </article>
+          <article class="mode-panel compact-mode stats-panel">
+            <div class="mini-stat"><span>GAMES</span><strong id="games-value">0</strong></div>
+            <div class="mini-stat"><span>WINS</span><strong id="wins-value">0</strong></div>
+            <div class="mini-stat"><span>BEST</span><strong id="best-score-value">0</strong></div>
+          </article>
+        </div>
+      </section>
 
-    <section id="final-screen" class="screen final-screen" aria-labelledby="final-title">
-      <div class="final-grid-bg" aria-hidden="true"></div><header class="simple-header"><a class="brand compact-brand" href="#" aria-label="GeoScope home"><span class="brand-mark" aria-hidden="true"><span></span><span></span></span><span>GEOSCOPE</span></a><span>WORLD TOUR COMPLETE</span></header>
-      <main class="final-content"><span class="eyebrow"><span class="live-dot"></span> EXPEDITION COMPLETE</span><h1 id="final-title">You mapped<br /><em>the unknown.</em></h1><div class="total-score-card"><span>FINAL SCORE</span><strong id="final-score">0</strong><small>OUT OF 25,000</small></div><div id="round-breakdown" class="round-breakdown" aria-label="Round score breakdown"></div><div class="final-actions"><button id="play-again" class="primary-button" type="button">PLAY AGAIN</button><button id="share-score" class="secondary-button" type="button">COPY RESULT</button></div><p id="share-status" class="share-status" aria-live="polite"></p></main>
-    </section>
+      <section id="lobby-screen" class="screen lobby-screen">
+        <div class="lobby-head">
+          <div><span class="kicker"><i></i> PRIVATE ROOM</span><h1>Lobby <em id="lobby-code">------</em></h1><p id="lobby-status">Waiting for players.</p></div>
+          <div class="lobby-actions"><button id="copy-invite" class="secondary-button" type="button">COPY INVITE LINK</button><button id="leave-room" class="ghost-button" type="button">LEAVE</button></div>
+        </div>
+        <div class="lobby-layout">
+          <div class="players-panel">
+            <div class="section-title"><span>PLAYERS</span><strong id="player-count">0 / 8</strong></div>
+            <div id="players-list" class="players-list"></div>
+          </div>
+          <aside class="room-settings">
+            <div class="section-title"><span>ROOM SETTINGS</span></div>
+            <label>ROUNDS<select id="round-count"><option value="3">3 rounds</option><option value="5" selected>5 rounds</option><option value="10">10 rounds</option></select></label>
+            <label>ROUND TIME<select id="round-time"><option value="60">60 seconds</option><option value="90" selected>90 seconds</option><option value="120">120 seconds</option></select></label>
+            <div class="setting-summary"><span>MAP</span><strong>WORLDWIDE STREET VIEW</strong></div>
+            <button id="ready-button" class="secondary-button" type="button">I'M READY</button>
+            <button id="start-room" class="primary-button" type="button" disabled>START MATCH <span>→</span></button>
+          </aside>
+        </div>
+      </section>
 
-    <dialog id="settings-dialog" class="settings-dialog"><form method="dialog"><div class="settings-head"><div><span class="panel-kicker">GAME SETTINGS</span><h2>Street View provider</h2></div><button class="icon-button panel-close" value="cancel" aria-label="Close settings">×</button></div><p>GeoScope works immediately in curated image mode. Add a Google Maps JavaScript API key to use interactive Street View panoramas where available.</p><label for="api-key">Google Maps API key</label><input id="api-key" name="api-key" type="password" autocomplete="off" placeholder="Paste API key" /><label class="check-row" for="prefer-streetview"><input id="prefer-streetview" type="checkbox" /><span>Prefer Google Street View</span></label><div class="settings-actions"><button id="clear-settings" class="secondary-button" type="button">CLEAR</button><button id="save-settings" class="primary-button" type="button">SAVE SETTINGS</button></div><small class="settings-note">The key is saved only in this browser. Restrict it to your deployed domain in Google Cloud.</small></form></dialog>
+      <section id="game-screen" class="screen game-screen">
+        <div id="street-view" class="street-view" aria-label="Google Street View panorama"></div>
+        <div class="game-vignette" aria-hidden="true"></div>
+        <div class="game-topbar">
+          <div class="round-indicator"><span id="game-round">ROUND 1 / 5</span><div><i id="round-progress"></i></div></div>
+          <div class="timer-box"><span>TIME</span><strong id="game-timer">01:30</strong></div>
+          <button id="leaderboard-toggle" class="hud-button" type="button">SCORES</button>
+        </div>
+        <aside id="live-leaderboard" class="live-leaderboard"><div class="section-title"><span>LIVE SCOREBOARD</span></div><div id="live-score-list"></div></aside>
+        <button id="open-guess-map" class="guess-trigger" type="button"><span>PLACE YOUR GUESS</span><strong>OPEN MAP</strong><i>→</i></button>
+        <div id="guess-drawer" class="guess-drawer" aria-hidden="true">
+          <div class="guess-head"><div><span class="panel-label">PLACE YOUR PIN</span><h2>Where are you?</h2></div><button id="close-guess-map" class="close-button" type="button">×</button></div>
+          <div id="guess-map" class="guess-map"></div>
+          <div class="guess-footer"><span id="guess-coordinate">Select a location on the map</span><button id="submit-guess" class="primary-button" type="button" disabled>LOCK GUESS</button></div>
+        </div>
+      </section>
+
+      <section id="result-screen" class="screen result-screen">
+        <div id="result-map" class="result-map"></div>
+        <div class="result-panel">
+          <span class="kicker"><i></i> ROUND COMPLETE</span>
+          <h1 id="result-heading">Your guess is locked.</h1>
+          <div class="result-metrics"><div><span>DISTANCE</span><strong id="result-distance">—</strong></div><div><span>POINTS</span><strong id="result-score">—</strong></div></div>
+          <div class="actual-location"><span>ACTUAL LOCATION</span><strong id="result-location">Hidden until the round ends</strong></div>
+          <div id="round-scoreboard" class="round-scoreboard"></div>
+          <button id="reveal-round" class="secondary-button" type="button">REVEAL ROUND</button>
+          <button id="next-round" class="primary-button" type="button">NEXT ROUND <span>→</span></button>
+        </div>
+      </section>
+
+      <section id="final-screen" class="screen final-screen">
+        <div class="final-content"><span class="kicker"><i></i> MATCH COMPLETE</span><h1>Final<br /><em>standings.</em></h1><div id="final-standings" class="final-standings"></div><div class="final-actions"><button id="back-dashboard" class="primary-button" type="button">BACK TO LOBBY</button><button id="rematch-button" class="secondary-button" type="button">REMATCH</button></div></div>
+      </section>
+    </main>
+
+    <dialog id="profile-dialog" class="sheet-dialog"><div class="dialog-head"><div><span class="panel-label">PLAYER PROFILE</span><h2 id="profile-name">Player</h2></div><button class="close-button" data-close-dialog="profile-dialog" type="button">×</button></div><div class="profile-grid"><div><span>RATING</span><strong id="profile-rating">1000</strong></div><div><span>GAMES</span><strong id="profile-games">0</strong></div><div><span>WINS</span><strong id="profile-wins">0</strong></div><div><span>BEST SCORE</span><strong id="profile-best">0</strong></div></div><button id="sign-out" class="danger-button" type="button">SIGN OUT</button></dialog>
+
+    <dialog id="friends-dialog" class="sheet-dialog friends-dialog"><div class="dialog-head"><div><span class="panel-label">SOCIAL</span><h2>Friends</h2></div><button class="close-button" data-close-dialog="friends-dialog" type="button">×</button></div><div class="friend-code"><span>YOUR PLAYER ID</span><strong id="player-id">—</strong><button id="copy-player-id" class="ghost-button" type="button">COPY</button></div><div class="add-friend-row"><input id="friend-id-input" placeholder="PASTE PLAYER ID" /><button id="add-friend" class="secondary-button" type="button">ADD</button></div><div class="section-title"><span>REQUESTS</span></div><div id="friend-requests" class="friend-list"></div><div class="section-title"><span>FRIENDS</span></div><div id="friends-list" class="friend-list"></div></dialog>
+
+    <dialog id="setup-dialog" class="setup-dialog"><div class="dialog-head"><div><span class="panel-label">INTEGRATION REQUIRED</span><h2>Connect Google services</h2></div></div><p>This full multiplayer build requires a Firebase web configuration and a browser-restricted Google Maps API key. The repository contains the application and backend, but Google does not issue these credentials from GitHub.</p><div id="missing-config-list" class="missing-config-list"></div><a href="README.md" class="primary-button">OPEN SETUP INSTRUCTIONS</a></dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
