@@ -1,61 +1,118 @@
-# GeoScope
+# GeoScope — Google Street View Multiplayer
 
-**Play online:** https://nkuchenov-hash.github.io/desktop-tutorial/
+GeoScope is a real multiplayer location-guessing application built around Google Street View, Firebase Authentication, Cloud Firestore and Cloud Functions.
 
-A modern, responsive geography guessing game inspired by the location-guessing genre.
+## Implemented application features
 
-## Features
+- Google account sign-in and persistent player profiles
+- Interactive Google Street View panorama gameplay
+- Create private rooms and invite players with a six-character code or URL
+- Join rooms, ready states, host controls and synchronized rounds
+- Live player list and realtime leaderboard
+- Distance calculation and server-side scoring up to 5,000 points per round
+- Round results, revealed map, final standings and rematches
+- Player rating, match count, wins and best score
+- Friend requests and persistent friends lists
+- Responsive desktop and mobile UI
+- Firestore Security Rules that block direct writes to authoritative match state
+- Cloud Functions that create rooms, control rounds, validate guesses and update scores
 
-- Five-round World Tour mode
-- 90-second round timer
-- Interactive OpenStreetMap guessing map
-- Distance calculation and exponential scoring up to 5,000 points per round
-- Round result map with guess-to-answer line
-- Final score breakdown and shareable result
-- Responsive desktop and mobile interface
-- Curated image mode that works without an API key
-- Optional Google Street View integration
-- Automatic GitHub Pages deployment
+## Required Google services
 
-## Run locally
+GitHub cannot create Google Cloud credentials. Before the production site can sign users in or show Street View, create one Firebase/Google Cloud project and configure the items below.
 
-Because the project is static, any local web server works:
+### 1. Firebase project
+
+1. Open Firebase Console and create a project.
+2. Add a Web App.
+3. Enable **Authentication → Sign-in method → Google**.
+4. Create a **Cloud Firestore** database.
+5. Upgrade the Firebase project to the Blaze plan because Cloud Functions and Google Maps require billing.
+6. Add these authorized domains in Firebase Authentication:
+   - `nkuchenov-hash.github.io`
+   - `localhost`
+
+### 2. Google Maps APIs
+
+In the same Google Cloud project enable:
+
+- Maps JavaScript API
+- Street View Static API, used only by the backend metadata lookup
+
+Create two API keys:
+
+**Browser key**
+
+- Restrict application type to Websites.
+- Allow `https://nkuchenov-hash.github.io/desktop-tutorial/*`.
+- Restrict the key to Maps JavaScript API.
+
+**Server key**
+
+- Restrict it to Street View Static API.
+- Store it as the Firebase Functions secret `GOOGLE_MAPS_SERVER_KEY`.
+
+### 3. GitHub repository variables
+
+Open **Settings → Secrets and variables → Actions → Variables** and add:
+
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+- `GOOGLE_MAPS_BROWSER_KEY`
+
+These are web application configuration values. The browser Maps key must be protected by HTTP referrer restrictions.
+
+### 4. Deploy the Firebase backend
+
+Install Firebase CLI locally, sign in and select the project:
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase use --add
+cd functions
+npm install
+cd ..
+firebase functions:secrets:set GOOGLE_MAPS_SERVER_KEY
+firebase deploy --only functions,firestore:rules
+```
+
+Alternatively, add a GitHub secret named `FIREBASE_SERVICE_ACCOUNT` containing a Firebase service-account JSON document, then run the **Deploy GeoScope Firebase backend** workflow. The Maps server key must still be added as a Firebase Functions secret.
+
+### 5. Deploy the frontend
+
+After adding the GitHub variables, run the **Deploy GeoScope frontend** workflow. The live URL is:
+
+`https://nkuchenov-hash.github.io/desktop-tutorial/`
+
+## Local development
+
+Copy the Firebase web configuration and browser Maps key into `runtime-config.js`, then serve the repository through a local web server:
 
 ```bash
 python -m http.server 8080
 ```
 
-Open `http://localhost:8080`.
+Use the Firebase Emulator Suite for backend development:
 
-## Enable Google Street View
+```bash
+firebase emulators:start
+```
 
-1. Create a Google Maps Platform project.
-2. Enable the Maps JavaScript API and billing.
-3. Restrict the browser key to your local and deployed domains.
-4. Open GeoScope settings, paste the key, enable **Prefer Google Street View**, and save.
+## Data model
 
-The key is stored in the current browser's local storage. For a production public game, use domain restrictions and monitor API billing and quotas.
+- `users/{uid}` — public profile and competitive statistics
+- `users/{uid}/friends/{friendUid}` — accepted friends
+- `users/{uid}/friendRequests/{requesterUid}` — incoming requests
+- `rooms/{code}` — realtime public room state
+- `rooms/{code}/players/{uid}` — room players and scores
+- `rooms/{code}/rounds/{round}/guesses/{uid}` — validated round results
+- `rooms/{code}/private/game` — server-only location sequence, denied by Firestore rules
 
-## Deploy with GitHub Pages
+## Security boundary
 
-The workflow at `.github/workflows/pages.yml` deploys the repository root whenever `main` is updated. In repository settings, set **Pages → Source** to **GitHub Actions** if it is not selected automatically.
-
-## Data and attribution
-
-- Guess and result maps use OpenStreetMap tiles and show the required attribution.
-- Demo photographs are loaded from Unsplash.
-- Google Street View is used only when the player supplies an API key.
-
-## Roadmap
-
-- Accounts and persistent statistics
-- Daily challenge with deterministic seeds
-- Multiplayer rooms and live scoreboards
-- Country, city, and regional map packs
-- Community-created maps
-- Anti-cheat rules and ranked play
-- Server-side key handling and content administration
-
-## License
-
-MIT
+The frontend never writes scores or authoritative room state directly. Callable Cloud Functions validate membership, round timing, coordinates and duplicate submissions. Firestore rules deny client writes to rooms, player scores, guesses and private location data.
