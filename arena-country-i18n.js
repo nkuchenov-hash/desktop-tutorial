@@ -1,0 +1,6 @@
+(()=>{'use strict';
+const countries={'United Kingdom':'GB','France':'FR','Italy':'IT','Germany':'DE','Spain':'ES','Finland':'FI','United States':'US','Japan':'JP','South Korea':'KR','Portugal':'PT','Austria':'AT','Denmark':'DK','Sweden':'SE','Norway':'NO','Czechia':'CZ','Hungary':'HU','Estonia':'EE','Uruguay':'UY','New Zealand':'NZ','Netherlands':'NL','Australia':'AU','United Arab Emirates':'AE','Singapore':'SG','Canada':'CA','Mexico':'MX','Argentina':'AR','South Africa':'ZA','Brazil':'BR','Taiwan':'TW','Greece':'GR','Belgium':'BE','Iceland':'IS','Namibia':'NA','Faroe Islands':'FO','Chile':'CL'};
+function language(){try{return JSON.parse(localStorage.getItem('geoCfg')||'{}').lang||'en'}catch{return'en'}}
+function apply(){const el=document.getElementById('locationName');if(!el||!el.textContent)return;const lang=language();let text=el.textContent;let display;try{display=new Intl.DisplayNames([lang],{type:'region'})}catch{return}for(const[name,code]of Object.entries(countries)){if(text.includes(name)){const localized=display.of(code)||name;if(localized!==name)text=text.replace(name,localized);break}}if(el.textContent!==text)el.textContent=text}
+new MutationObserver(apply).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(apply,0);
+})();
