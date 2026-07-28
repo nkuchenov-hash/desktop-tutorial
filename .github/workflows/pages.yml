@@ -24,46 +24,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate product and game runtimes
+      - name: Validate product, arena and 15 locales
         run: |
           node --check geoscope.js
+          node --check geoscope-v2.js
           node --check arena-pro.js
+          node --check arena-v5.js
           node --check arena-query-config.js
-          node --check arena-shell-bridge.js
-          node --check arena-i18n.js
-          node --check arena-v3.js
+          node --check geoscope-locales-core.js
+          node --check geoscope-locales-loader.js
+          node --check geoscope-locales-final.js
+          for file in geoscope-template-{1..5}.js arena-template-{1..2}.js locale-{en,es,pt,fr,de,ru,zh,ja,ko,ar,hi,id,tr,it,pl}.js; do
+            node --check "$file"
+          done
           node <<'NODE'
           const fs = require('fs');
-          const chunks = [
-            'arena-v3-1.txt','arena-v3-2.txt','arena-v3-3.txt','arena-v3-4a.txt','arena-v3-4b.txt',
-            'arena-v3-5a.txt','arena-v3-5b.txt','arena-v3-6a.txt','arena-v3-6b.txt'
-          ];
-          const encoded = chunks.map(file => fs.readFileSync(file, 'utf8').trim()).join('');
-          fs.writeFileSync('/tmp/geoscope-arena-runtime.js', Buffer.from(encoded, 'base64').toString('utf8'));
+          global.window = {};
+          require('./geoscope-locales-core.js');
+          const localeCodes = ['en','es','pt','fr','de','ru','zh','ja','ko','ar','hi','id','tr','it','pl'];
+          for (const code of localeCodes) require(`./locale-${code}.js`);
+          require('./geoscope-locales-final.js');
+          const i18n = window.GeoScopeI18n;
+          i18n.validate();
+          if (Object.keys(i18n.locales).length !== 15) throw new Error('Expected exactly 15 locales');
+          const referenceKeys = Object.keys(i18n.locales.en);
+          if (referenceKeys.length < 200) throw new Error(`Translation pack is incomplete: ${referenceKeys.length} keys`);
+          for (const code of localeCodes) {
+            const keys = Object.keys(i18n.locales[code]);
+            if (keys.length !== referenceKeys.length) throw new Error(`Locale ${code} is incomplete`);
+          }
 
-          const landing = fs.readFileSync('geoscope.html', 'utf8');
-          const index = fs.readFileSync('index.html', 'utf8');
-          const arena = fs.readFileSync('arena-pro.html', 'utf8');
-          const screenFix = fs.readFileSync('arena-pro-screen-fix.css', 'utf8').replace(/\s+/g, '');
-          const requiredLandingIds = ['landing','auth','app','view-hub','view-play','view-profile','launchGame'];
-          for (const id of requiredLandingIds) {
-            if (!landing.includes(`id="${id}"`)) throw new Error(`geoscope.html missing #${id}`);
+          global.window = {};
+          for (let i = 1; i <= 5; i++) require(`./geoscope-template-${i}.js`);
+          const shell = window.__GS_TEMPLATE.join('');
+          global.window = {};
+          for (let i = 1; i <= 2; i++) require(`./arena-template-${i}.js`);
+          const arena = window.__GS_ARENA_TEMPLATE.join('');
+          const usedKeys = [...shell.matchAll(/data-i18n(?:-placeholder)?="([^"]+)"/g), ...arena.matchAll(/data-i18n(?:-placeholder)?="([^"]+)"/g)].map(match => match[1]);
+          for (const key of usedKeys) if (!referenceKeys.includes(key)) throw new Error(`Missing translation key: ${key}`);
+
+          const productEntry = fs.readFileSync('geoscope.html','utf8');
+          const arenaEntry = fs.readFileSync('arena-pro.html','utf8');
+          const index = fs.readFileSync('index.html','utf8');
+          if (!productEntry.includes('geoscope.js?v=20260728-2')) throw new Error('Product entry is not cache-busted');
+          if (!arenaEntry.includes('arena-pro.js?v=20260728-2')) throw new Error('Arena entry is not cache-busted');
+          if (!index.includes('geoscope.html')) throw new Error('Main URL does not open GeoScope');
+          for (const file of ['geoscope-v2-a.css','geoscope-v2-b.css','geoscope-v2-c.css','geoscope-v2-d.css','geoscope-v2-e.css','arena-v5.css']) {
+            if (!fs.existsSync(file) || fs.statSync(file).size < 100) throw new Error(`Missing visual asset: ${file}`);
           }
-          if (!landing.includes('geoscope.css') || !landing.includes('geoscope.js')) {
-            throw new Error('GeoScope product shell assets are missing');
-          }
-          if (!index.includes('geoscope.html')) throw new Error('index.html does not open the product shell');
-          if (!arena.includes('arena-query-config.js') || !arena.includes('arena-shell-bridge.js')) {
-            throw new Error('Arena is not connected to the product hub');
-          }
-          if (!arena.includes('arena-pro-screen-fix.css')) {
-            throw new Error('arena-pro.html is missing the screen visibility fix stylesheet');
-          }
-          if (!screenFix.includes('.screen.final{display:none}') || !screenFix.includes('.screen.final.active{display:grid')) {
-            throw new Error('Final screen visibility regression detected');
-          }
+          console.log(`Validated ${localeCodes.length} locales, ${referenceKeys.length} strings and ${usedKeys.length} translated UI bindings.`);
           NODE
-          node --check /tmp/geoscope-arena-runtime.js
 
       - name: Create runtime service configuration
         env:
