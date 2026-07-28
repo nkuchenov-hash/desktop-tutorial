@@ -28,8 +28,10 @@ jobs:
         run: |
           node --check geoscope.js
           node --check geoscope-v2.js
+          node --check geoscope-static-i18n.js
           node --check arena-pro.js
           node --check arena-v5.js
+          node --check arena-country-i18n.js
           node --check arena-query-config.js
           node --check geoscope-locales-core.js
           node --check geoscope-locales-loader.js
@@ -65,9 +67,13 @@ jobs:
 
           const productEntry = fs.readFileSync('geoscope.html','utf8');
           const arenaEntry = fs.readFileSync('arena-pro.html','utf8');
+          const productBootstrap = fs.readFileSync('geoscope.js','utf8');
+          const arenaBootstrap = fs.readFileSync('arena-pro.js','utf8');
           const index = fs.readFileSync('index.html','utf8');
           if (!productEntry.includes('geoscope.js?v=20260728-2')) throw new Error('Product entry is not cache-busted');
           if (!arenaEntry.includes('arena-pro.js?v=20260728-2')) throw new Error('Arena entry is not cache-busted');
+          if (!productBootstrap.includes('geoscope-static-i18n.js')) throw new Error('Static shell labels are not localized');
+          if (!arenaBootstrap.includes('arena-country-i18n.js')) throw new Error('Dynamic country labels are not localized');
           if (!index.includes('geoscope.html')) throw new Error('Main URL does not open GeoScope');
           for (const file of ['geoscope-v2-a.css','geoscope-v2-b.css','geoscope-v2-c.css','geoscope-v2-d.css','geoscope-v2-e.css','arena-v5.css']) {
             if (!fs.existsSync(file) || fs.statSync(file).size < 100) throw new Error(`Missing visual asset: ${file}`);
