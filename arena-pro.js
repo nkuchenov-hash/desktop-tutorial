@@ -8,7 +8,7 @@ async function start(){
   window.__GS_ARENA_TEMPLATE=[];
   await script('arena-template-1.js');await script('arena-template-2.js');
   document.body.innerHTML=window.__GS_ARENA_TEMPLATE.join('');delete window.__GS_ARENA_TEMPLATE;
-  await script('geoscope-locales-core.js');for(const file of locales)await script(file);await script('geoscope-locales-final.js');await script('arena-v5.js');
+  await script('geoscope-locales-core.js');for(const file of locales)await script(file);await script('geoscope-locales-final.js');await script('arena-v5.js');await script('arena-country-i18n.js');
 }
 start().catch(error=>{console.error(error);document.body.innerHTML='<main style="min-height:100vh;display:grid;place-items:center;background:#070a0d;color:#f4f7f3;font:18px system-ui"><div><h1>GeoScope</h1><p>The match interface could not load.</p><a style="color:#caff46" href="geoscope.html#app">Return to game hub</a></div></main>'});
 })();
