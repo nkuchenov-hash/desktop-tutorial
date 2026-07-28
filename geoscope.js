@@ -16,6 +16,7 @@ async function start(){
   for(const file of locales)await script(file);
   await script('geoscope-locales-final.js');
   await script('geoscope-v2.js');
+  await script('geoscope-static-i18n.js');
 }
 start().catch(error=>{console.error(error);document.body.innerHTML=`<main style="min-height:100vh;display:grid;place-items:center;background:#070a0c;color:#f4f7f3;font:18px system-ui"><div><h1>GeoScope</h1><p>The interface could not load. Refresh the page.</p></div></main>`});
 })();
