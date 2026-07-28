@@ -24,9 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate game runtimes
+      - name: Validate product and game runtimes
         run: |
+          node --check geoscope.js
           node --check arena-pro.js
+          node --check arena-query-config.js
+          node --check arena-shell-bridge.js
           node --check arena-i18n.js
           node --check arena-v3.js
           node <<'NODE'
@@ -38,9 +41,22 @@ jobs:
           const encoded = chunks.map(file => fs.readFileSync(file, 'utf8').trim()).join('');
           fs.writeFileSync('/tmp/geoscope-arena-runtime.js', Buffer.from(encoded, 'base64').toString('utf8'));
 
-          const html = fs.readFileSync('arena-pro.html', 'utf8');
+          const landing = fs.readFileSync('geoscope.html', 'utf8');
+          const index = fs.readFileSync('index.html', 'utf8');
+          const arena = fs.readFileSync('arena-pro.html', 'utf8');
           const screenFix = fs.readFileSync('arena-pro-screen-fix.css', 'utf8').replace(/\s+/g, '');
-          if (!html.includes('arena-pro-screen-fix.css')) {
+          const requiredLandingIds = ['landing','auth','app','view-hub','view-play','view-profile','launchGame'];
+          for (const id of requiredLandingIds) {
+            if (!landing.includes(`id="${id}"`)) throw new Error(`geoscope.html missing #${id}`);
+          }
+          if (!landing.includes('geoscope.css') || !landing.includes('geoscope.js')) {
+            throw new Error('GeoScope product shell assets are missing');
+          }
+          if (!index.includes('geoscope.html')) throw new Error('index.html does not open the product shell');
+          if (!arena.includes('arena-query-config.js') || !arena.includes('arena-shell-bridge.js')) {
+            throw new Error('Arena is not connected to the product hub');
+          }
+          if (!arena.includes('arena-pro-screen-fix.css')) {
             throw new Error('arena-pro.html is missing the screen visibility fix stylesheet');
           }
           if (!screenFix.includes('.screen.final{display:none}') || !screenFix.includes('.screen.final.active{display:grid')) {
@@ -49,14 +65,17 @@ jobs:
           NODE
           node --check /tmp/geoscope-arena-runtime.js
 
-      - name: Create runtime Google Maps configuration
+      - name: Create runtime service configuration
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GM }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
         run: |
           node <<'NODE'
           const fs = require('fs');
-          const key = process.env.GOOGLE_MAPS_API_KEY || '';
-          fs.writeFileSync('config.js', `window.GEOSCOPE_CONFIG = ${JSON.stringify({ googleMapsApiKey: key })};\n`);
+          const mapsKey = process.env.GOOGLE_MAPS_API_KEY || '';
+          const googleClientId = process.env.GOOGLE_OAUTH_CLIENT_ID || '';
+          fs.writeFileSync('config.js', `window.GEOSCOPE_CONFIG = ${JSON.stringify({ googleMapsApiKey: mapsKey })};\n`);
+          fs.writeFileSync('auth-config.js', `window.GEOSCOPE_AUTH_CONFIG = ${JSON.stringify({ googleClientId })};\n`);
           NODE
 
       - name: Configure Pages
