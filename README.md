@@ -4,6 +4,8 @@
 
 A modern, responsive geography guessing game inspired by the location-guessing genre.
 
+Source/entrypoint documentation review: `docs/DOCUMENTATION_PARITY_2026-10-17.md`. Root `index.html` redirects to `geoscope.html`; existing Arena screens and old JS variants require a consumer audit before any cleanup.
+
 ## Features
 
 - Five-round World Tour mode
